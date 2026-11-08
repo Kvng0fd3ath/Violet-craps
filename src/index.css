@@ -1,0 +1,234 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Cinzel", serif;
+  --font-num: "Bebas Neue", sans-serif;
+  --font-body: "Inter", system-ui, sans-serif;
+  --color-felt-950: #16032e;
+  --color-felt-900: #1c0536;
+  --color-felt-800: #2a0a55;
+  --color-felt-700: #3b1273;
+  --color-felt-600: #4c1d95;
+  --color-felt-500: #6d28d9;
+  --color-felt-400: #8b5cf6;
+  --color-felt-300: #b79cf7;
+  --color-gold-300: #ffe29a;
+  --color-gold-400: #f5c451;
+  --color-gold-500: #d9a441;
+  --color-gold-600: #a97a22;
+}
+
+html,
+body {
+  height: 100%;
+  background: #16032e;
+  overscroll-behavior-y: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+body {
+  font-family: var(--font-body);
+  color: #f3eefc;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* ---------------- Felt ---------------- */
+.felt {
+  background:
+    radial-gradient(120% 80% at 50% -10%, rgba(139, 92, 246, 0.5) 0%, rgba(76, 29, 149, 0) 55%),
+    radial-gradient(140% 110% at 50% 30%, #5b21b6 0%, #3b1273 42%, #1c0536 100%);
+}
+.felt-grain {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+}
+.felt-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(130% 100% at 50% 40%, transparent 55%, rgba(10, 2, 24, 0.75) 100%);
+}
+.gold-text {
+  background: linear-gradient(180deg, #ffe9b0 0%, #f5c451 48%, #a97a22 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.deco-line {
+  background: linear-gradient(90deg, transparent, rgba(245, 196, 81, 0.55), transparent);
+  height: 1px;
+}
+
+/* ---------------- Chip ---------------- */
+.chip {
+  position: relative;
+  border-radius: 9999px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  box-shadow:
+    0 3px 6px rgba(0, 0, 0, 0.45),
+    inset 0 2px 2px rgba(255, 255, 255, 0.35),
+    inset 0 -3px 4px rgba(0, 0, 0, 0.28);
+  user-select: none;
+}
+.chip::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: repeating-conic-gradient(
+    from 15deg,
+    rgba(255, 255, 255, 0.92) 0deg 24deg,
+    transparent 24deg 60deg
+  );
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 22%), #000 calc(100% - 20%));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 22%), #000 calc(100% - 20%));
+}
+.chip::after {
+  content: "";
+  position: absolute;
+  inset: 22%;
+  border-radius: 9999px;
+  border: 1.5px dashed rgba(255, 255, 255, 0.55);
+}
+.chip-label {
+  position: relative;
+  z-index: 1;
+  font-weight: 800;
+  line-height: 1;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+/* 3-D stack illusion for placed bets */
+.chip-stack {
+  position: relative;
+  filter: drop-shadow(0 4px 5px rgba(0, 0, 0, 0.5));
+}
+.chip-stack::before,
+.chip-stack::after {
+  content: "";
+  position: absolute;
+  left: 6%;
+  right: 6%;
+  bottom: -3px;
+  height: 5px;
+  border-radius: 9999px;
+  background: rgba(0, 0, 0, 0.28);
+  z-index: -1;
+}
+.chip-stack::after {
+  bottom: -6px;
+  left: 12%;
+  right: 12%;
+  opacity: 0.5;
+}
+
+/* ---------------- Dice (real 3D cubes) ---------------- */
+.die-scene {
+  perspective: 520px;
+}
+.die-cube {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 1350ms cubic-bezier(0.16, 0.84, 0.24, 1);
+}
+.die-face {
+  position: absolute;
+  inset: 0;
+  border-radius: 18%;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.95), rgba(226, 216, 255, 0.55) 45%, rgba(255, 255, 255, 0.15) 80%),
+    linear-gradient(180deg, #fdfcff, #e9e4f4);
+  box-shadow:
+    inset 0 0 0 1px rgba(76, 29, 149, 0.18),
+    inset 0 2px 6px rgba(255, 255, 255, 0.9),
+    inset 0 -4px 8px rgba(76, 29, 149, 0.22);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  padding: 14%;
+  backface-visibility: hidden;
+}
+.pip {
+  width: 78%;
+  aspect-ratio: 1;
+  place-self: center;
+  border-radius: 9999px;
+  background: radial-gradient(circle at 35% 30%, #6d28d9, #12022a 78%);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.6), 0 1px 1px rgba(255, 255, 255, 0.55);
+}
+/* extra-bold pip for small dice readouts */
+.pip-xl {
+  width: 94%;
+  background: radial-gradient(circle at 35% 30%, #7c3aed, #0e0121 75%);
+  box-shadow: inset 0 1px 1.5px rgba(0, 0, 0, 0.55);
+}
+.pip.empty {
+  visibility: hidden;
+}
+
+/* ---------------- Buttons / misc ---------------- */
+.btn-press {
+  background: linear-gradient(180deg, #ffe9b0 0%, #f5c451 45%, #c98f2b 100%);
+  box-shadow: 0 4px 14px rgba(245, 196, 81, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.65);
+}
+.btn-press:active {
+  transform: translateY(1px) scale(0.98);
+}
+.spot {
+  transition: transform 120ms ease, box-shadow 200ms ease, background 200ms ease;
+}
+.spot:active {
+  transform: scale(0.97);
+}
+.win-flash {
+  animation: winFlash 900ms ease-out;
+}
+@keyframes winFlash {
+  0% {
+    box-shadow: 0 0 0 0 rgba(245, 196, 81, 0.9);
+    background: rgba(245, 196, 81, 0.22);
+  }
+  100% {
+    box-shadow: 0 0 26px 10px rgba(245, 196, 81, 0);
+    background: transparent;
+  }
+}
+.call-pop {
+  animation: callPop 380ms cubic-bezier(0.2, 0.9, 0.3, 1.4);
+}
+@keyframes callPop {
+  0% {
+    transform: translateY(10px) scale(0.9);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+.ticker-mask {
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+}
+.safe-bottom {
+  padding-bottom: max(env(safe-area-inset-bottom), 10px);
+}
