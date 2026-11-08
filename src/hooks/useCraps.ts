@@ -90,7 +90,7 @@ let toastId = 1;
 const pushToast = (toasts: Toast[], text: string, kind: "info" | "warn" = "info"): Toast[] =>
   [...toasts.slice(-2), { id: toastId++, text, kind }];
 
-export const CHIPS = [1, 5, 25, 100, 500];
+export const CHIPS = [1, 5, 25, 100, 500, 1000, 5000];
 
 /* ------------------------------ per-device persistence ------------------------------ */
 
