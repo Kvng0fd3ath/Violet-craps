@@ -8,9 +8,13 @@ export const CHIP_COLORS: Record<number, { bg: string; text: string }> = {
   25: { bg: "#059669", text: "#ffffff" },
   100: { bg: "#18181b", text: "#f5c451" },
   500: { bg: "#7c3aed", text: "#ffffff" },
+  1000: { bg: "#d97706", text: "#ffffff" },
+  5000: { bg: "#2563eb", text: "#ffffff" },
 };
 
 export function stackColor(amount: number) {
+  if (amount >= 5000) return CHIP_COLORS[5000];
+  if (amount >= 1000) return CHIP_COLORS[1000];
   if (amount >= 500) return CHIP_COLORS[500];
   if (amount >= 100) return CHIP_COLORS[100];
   if (amount >= 25) return CHIP_COLORS[25];
@@ -48,7 +52,7 @@ export function Chip({
         className="chip-label font-num"
         style={{ color: c.text, fontSize: size * (value >= 100 ? 0.3 : 0.34) }}
       >
-        {value}
+        {value >= 1000 ? `${value / 1000}k` : value}
       </span>
     </button>
   );
