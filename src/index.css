@@ -229,6 +229,10 @@ body {
   -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
   mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
 }
+/* Keep the sticky header below the iPhone status bar in standalone mode. */
+.safe-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
 .safe-bottom {
   padding-bottom: max(env(safe-area-inset-bottom), 10px);
 }
