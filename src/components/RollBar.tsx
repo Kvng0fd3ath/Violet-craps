@@ -140,7 +140,7 @@ export function RollBar({
   const pinchRack = pendingTotal - pinchRides;
 
   return (
-    <div className="sticky bottom-0 z-40 mt-2">
+    <div className="roll-controls sticky bottom-0 z-40 mt-2">
       <div className="safe-bottom rounded-t-[26px] border-t border-gold-400/30 bg-felt-950/92 shadow-[0_-18px_44px_rgba(0,0,0,0.55)] backdrop-blur-xl">
         {/* ---------- press / pinch / pocket decisions ---------- */}
         <AnimatePresence initial={false}>
@@ -221,7 +221,7 @@ export function RollBar({
         </AnimatePresence>
 
         {/* ---------- chips + tools ---------- */}
-        <div className="no-scrollbar flex items-center gap-2 overflow-x-auto px-3 pt-2.5">
+        <div className="chip-toolbar flex items-center gap-2 overflow-x-auto px-3 pt-2.5">
           {/* mode toggle */}
           <div className="flex flex-none rounded-full border border-white/15 bg-black/30 p-0.5">
             {(
@@ -260,6 +260,7 @@ export function RollBar({
             type="button"
             onClick={onRake}
             aria-label="Take chips back"
+            title="Take chips back"
             className={cn(
               "grid h-[38px] w-[38px] flex-none place-items-center rounded-full border transition-all active:scale-90",
               rakeMode
@@ -274,6 +275,7 @@ export function RollBar({
             onClick={onUndo}
             disabled={!canUndo}
             aria-label="Undo bet"
+            title="Undo bet"
             className="grid h-[38px] w-[38px] flex-none place-items-center rounded-full bg-white/5 text-white/70 transition active:scale-90 disabled:opacity-30"
           >
             <Undo2 size={16} />
@@ -282,6 +284,7 @@ export function RollBar({
             type="button"
             onClick={onClear}
             aria-label="Clear bets"
+            title="Clear bets"
             className="grid h-[38px] w-[38px] flex-none place-items-center rounded-full bg-white/5 text-white/70 transition active:scale-90"
           >
             <Eraser size={16} />
@@ -334,7 +337,7 @@ export function RollBar({
                 </div>
               </div>
               <div className="px-3 pt-1 text-center text-[9px] font-semibold text-purple-200/55">
-                Tap a face for die {manualSlot === 0 ? "A" : "B"} — cursor hops to the next die
+                Select a face for die {manualSlot === 0 ? "A" : "B"} — cursor hops to the next die
               </div>
             </motion.div>
           )}

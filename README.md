@@ -1,6 +1,8 @@
 # Violet Felt
 
-A Vite/React mobile craps app.
+A Vite/React craps app for phones and desktop browsers.
+
+Open the deployed URL on a PC to play with a mouse or keyboard; no installation is required. Choose a chip, click a betting spot, and click Roll. Share a table code from the lobby to play with friends across desktop and mobile devices. Camera and microphone access require browser permission and a secure HTTPS connection.
 
 ## Run locally
 

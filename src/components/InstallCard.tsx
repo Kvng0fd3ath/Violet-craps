@@ -34,7 +34,7 @@ export function InstallCard({
           </div>
         ) : install.canPrompt ? (
           <>
-            <div className="text-[13px] font-bold text-white">Add Violet Felt to your phone</div>
+            <div className="text-[13px] font-bold text-white">Install Violet Felt</div>
             <p className="mt-0.5 text-[11px] leading-4 text-purple-200/70">
               Installs like a real app with its own icon — and it updates itself from then on.
             </p>
@@ -68,8 +68,7 @@ export function InstallCard({
           <>
             <div className="text-[13px] font-bold text-white">Keep it one tap away</div>
             <p className="mt-0.5 text-[11px] leading-4 text-purple-200/70">
-              Use your browser menu → “Install app” or “Add to Home screen”. Once it’s on your
-              phone, every update arrives automatically.
+              Play right here in your browser, or use your browser menu to install the app if available.
             </p>
           </>
         )}
