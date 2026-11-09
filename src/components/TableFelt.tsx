@@ -98,7 +98,7 @@ export function TableFelt({
   const placeWorking = point !== null || placeOnComeOut;
 
   return (
-    <div className="relative">
+    <div className="game-table relative">
       {/* ---------------- dice tray ---------------- */}
       <div className="relative flex items-center justify-between px-2 pt-1">
         <div className="pointer-events-none absolute left-1/2 top-1/2 z-0 -translate-x-1/2 -translate-y-1/2">
@@ -160,7 +160,7 @@ export function TableFelt({
               onTap={() => onSpot(`place-${n}`)}
               flash={flash(`place-${n}`)}
               className={cn(
-                "flex h-[92px] w-full flex-col items-center justify-between rounded-lg pb-1.5 pt-1 md:h-[112px] md:py-2",
+                "place-spot flex h-[92px] w-full flex-col items-center justify-between rounded-lg pb-1.5 pt-1 md:h-[112px] md:py-2",
                 point === n && "border-gold-400/60 bg-gold-400/[0.06]"
               )}
             >
@@ -190,7 +190,7 @@ export function TableFelt({
                 label={`Hard ${n}`}
                 onTap={() => onSpot(`hard-${n}`)}
                 flash={flash(`hard-${n}`)}
-                className="flex h-[76px] flex-col items-center justify-between rounded-lg py-1.5 md:h-[90px]"
+                className="hard-spot flex h-[76px] flex-col items-center justify-between rounded-lg py-1.5 md:h-[90px]"
               >
                 <div className="flex items-center gap-1">
                   <MiniDie value={n / 2} size={18} />

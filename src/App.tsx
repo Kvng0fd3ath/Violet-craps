@@ -182,7 +182,7 @@ export default function App() {
       <div className="pointer-events-none fixed inset-y-0 left-0 hidden w-10 border-r border-gold-400/15 bg-gradient-to-r from-black/40 to-transparent md:block" />
       <div className="pointer-events-none fixed inset-y-0 right-0 hidden w-10 border-l border-gold-400/15 bg-gradient-to-l from-black/40 to-transparent md:block" />
 
-      <div className="relative z-10 mx-auto flex min-h-dvh w-full max-w-lg flex-col md:max-w-3xl">
+      <div className="game-layout relative z-10 mx-auto flex min-h-dvh w-full max-w-lg flex-col md:max-w-3xl">
         {/* ------------------------------ header ------------------------------ */}
         <header className="safe-top sticky top-0 z-30 border-b border-gold-400/15 bg-felt-950/80 backdrop-blur-md">
           <div className="flex items-center justify-between gap-2 px-4 py-2.5">
