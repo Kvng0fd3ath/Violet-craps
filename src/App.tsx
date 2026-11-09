@@ -203,10 +203,10 @@ export default function App() {
                 <Dices size={19} strokeWidth={2.5} />
               </div>
               <div>
-                <div className="gold-text font-display text-[15px] font-black leading-4 tracking-[0.18em]">
+                <div className="gold-text header-wordmark font-display font-black">
                   VIOLET FELT
                 </div>
-                <div className="text-[8px] font-bold uppercase tracking-[0.35em] text-purple-200/60">
+                <div className="header-subtitle font-bold uppercase text-purple-200/70">
                   craps table
                 </div>
               </div>
@@ -220,7 +220,7 @@ export default function App() {
                     {fmt(state.balance)}
                   </span>
                 </div>
-                <div className="text-[8.5px] font-semibold text-purple-200/60">
+                <div className="header-readout font-semibold text-purple-200/70">
                   {fmt(onLayout)} on felt
                   {session !== 0 && (
                     <span className={cn("ml-1 font-bold", session > 0 ? "text-emerald-400" : "text-red-400")}>
