@@ -233,6 +233,19 @@ body {
 .safe-top {
   padding-top: env(safe-area-inset-top, 0px);
 }
+
+/*
+ * Opaque header. A translucent, blurred bar let the bright felt glow bleed
+ * through, so content scrolling underneath looked hazy around the Dynamic
+ * Island / status bar. Fill it solidly (with a faint top→bottom shade) and the
+ * header stays legible whatever is behind it.
+ */
+.game-header {
+  background-color: #16032e;
+  background-image: linear-gradient(180deg, #1e0a3a 0%, #16032e 100%);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
 .safe-bottom {
   padding-bottom: max(env(safe-area-inset-bottom), 10px);
 }
@@ -318,15 +331,11 @@ input, textarea {
   .felt-grain {
     display: none;
   }
-  .game-header,
   .controls-panel,
   .game-table .spot,
   .game-table .stack-amount {
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
-  }
-  .game-header {
-    background-color: #16032e;
   }
   .controls-panel {
     background-color: #16032e;
