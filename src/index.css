@@ -237,6 +237,20 @@ body {
   padding-bottom: max(env(safe-area-inset-bottom), 10px);
 }
 
+/* Larger, less cluttered denomination labels on desktop. */
+@media (min-width: 768px) {
+  .chip-selector {
+    --selector-chip-size: 52px;
+    --selector-label-size: 18px;
+  }
+  .chip-selector::after {
+    display: none;
+  }
+  .chip-selector .chip-label {
+    text-shadow: none;
+  }
+}
+
 /* Desktop players can see and operate every control with a mouse or keyboard. */
 .chip-toolbar {
   scrollbar-width: thin;

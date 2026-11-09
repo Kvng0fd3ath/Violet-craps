@@ -5,10 +5,10 @@ import { fmt } from "../game/craps";
 export const CHIP_COLORS: Record<number, { bg: string; text: string }> = {
   1: { bg: "#f1f5f9", text: "#0f172a" },
   5: { bg: "#dc2626", text: "#ffffff" },
-  25: { bg: "#059669", text: "#ffffff" },
+  25: { bg: "#047857", text: "#ffffff" },
   100: { bg: "#18181b", text: "#f5c451" },
   500: { bg: "#7c3aed", text: "#ffffff" },
-  1000: { bg: "#d97706", text: "#ffffff" },
+  1000: { bg: "#a34b06", text: "#ffffff" },
   5000: { bg: "#2563eb", text: "#ffffff" },
 };
 
@@ -41,16 +41,18 @@ export function Chip({
       type="button"
       onClick={onClick}
       aria-label={`$${value} chip`}
+      aria-pressed={active}
+      title={`$${value.toLocaleString()} chip`}
       className={cn(
-        "chip transition-transform duration-150",
+        "chip chip-selector transition-transform duration-150",
         active && "-translate-y-1 ring-2 ring-gold-300 ring-offset-2 ring-offset-felt-900",
         className
       )}
-      style={{ width: size, height: size, background: c.bg }}
+      style={{ width: `var(--selector-chip-size, ${size}px)`, height: `var(--selector-chip-size, ${size}px)`, background: c.bg }}
     >
       <span
         className="chip-label font-num"
-        style={{ color: c.text, fontSize: size * (value >= 100 ? 0.3 : 0.34) }}
+        style={{ color: c.text, fontSize: `var(--selector-label-size, ${size * (value >= 100 ? 0.3 : 0.34)}px)` }}
       >
         {value >= 1000 ? `${value / 1000}k` : value}
       </span>
