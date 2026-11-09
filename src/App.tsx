@@ -3,7 +3,7 @@ import { Dices, Coins, Volume2, VolumeX, Info, Plus, Users, Trophy } from "lucid
 import { cn } from "./utils/cn";
 import { useCraps, BetSpot, type Mode } from "./hooks/useCraps";
 import { fmt, POINT_NUMBERS, type PointNumber } from "./game/craps";
-import { initAudio, playRattle, playOutcome, playChip, vibrate } from "./game/audio";
+import { initAudio, playRattle, playOutcome, playChip, vibrate, callDice, setAudioMuted } from "./game/audio";
 import { TableFelt } from "./components/TableFelt";
 import { RollBar } from "./components/RollBar";
 import { HelpSheet } from "./components/HelpSheet";
@@ -26,6 +26,12 @@ export default function App() {
   const [lobbyOpen, setLobbyOpen] = useState(false);
   const [shooterIdx, setShooterIdx] = useState(0);
   const rollTimer = useRef<number | undefined>(undefined);
+  const soundRef = useRef(state.soundOn);
+  soundRef.current = state.soundOn;
+
+  useEffect(() => {
+    setAudioMuted(!state.soundOn);
+  }, [state.soundOn]);
 
   /* ------------------------------ multiplayer ------------------------------ */
 
@@ -44,7 +50,11 @@ export default function App() {
         shooter: msg.name,
       });
       if (msg.sevenOut) setShooterIdx((i) => i + 1);
-      rollTimer.current = window.setTimeout(() => setRolling(false), ROLL_MS);
+      window.clearTimeout(rollTimer.current);
+      rollTimer.current = window.setTimeout(() => {
+        setRolling(false);
+        if (soundRef.current) callDice(msg.d1, msg.d2);
+      }, ROLL_MS);
     },
     [dispatch, state.soundOn]
   );
@@ -123,7 +133,11 @@ export default function App() {
     // seven-out passes the dice to the next player at the rail
     if (sevenOut) setShooterIdx((i) => i + 1);
     if (state.mode === "manual") setManualSlot(0);
-    rollTimer.current = window.setTimeout(() => setRolling(false), ROLL_MS);
+    window.clearTimeout(rollTimer.current);
+    rollTimer.current = window.setTimeout(() => {
+      setRolling(false);
+      if (soundRef.current) callDice(d1, d2);
+    }, ROLL_MS);
   };
 
   /* keypad entry: a tap fills slot A, the cursor hops to B, then wraps */
@@ -134,9 +148,6 @@ export default function App() {
   };
 
   /* ------------------------- sound / haptic outcomes ------------------------- */
-  const soundRef = useRef(state.soundOn);
-  soundRef.current = state.soundOn;
-
   useEffect(() => {
     if (state.rollId === 0) return;
     const t = window.setTimeout(() => {
@@ -161,7 +172,10 @@ export default function App() {
     return () => window.clearTimeout(t);
   }, [state.toasts, dispatch]);
 
-  useEffect(() => () => window.clearTimeout(rollTimer.current), []);
+  useEffect(() => () => {
+    window.clearTimeout(rollTimer.current);
+    setAudioMuted(true);
+  }, []);
 
   /* keep the table's standings board up to date with our stack */
   useEffect(() => {
