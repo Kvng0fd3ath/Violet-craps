@@ -74,12 +74,12 @@ export function ChipStack({
   const short = amount >= 10000 ? `${Math.round(amount / 1000)}k` : amount >= 1000 ? `${(amount / 1000).toFixed(1)}k` : `${amount}`;
   return (
     <div className={cn("chip-stack flex flex-col items-center", flash && "win-flash rounded-full")}>
-      <div className="chip" style={{ width: size, height: size, background: c.bg }}>
-        <span className="chip-label font-num" style={{ color: c.text, fontSize: size * 0.3 }}>
+      <div className="chip" style={{ width: `var(--stack-chip-size, ${size}px)`, height: `var(--stack-chip-size, ${size}px)`, background: c.bg }}>
+        <span className="chip-label font-num" style={{ color: c.text, fontSize: `var(--stack-label-size, ${size * 0.3}px)` }}>
           {short}
         </span>
       </div>
-      <span className="-mt-0.5 rounded-full bg-black/45 px-1.5 py-px text-[10px] font-bold leading-4 text-gold-300 backdrop-blur-sm">
+      <span className="stack-amount -mt-0.5 rounded-full bg-black/45 px-1.5 py-px text-[10px] font-bold leading-4 text-gold-300 backdrop-blur-sm">
         {fmt(amount)}
       </span>
     </div>
