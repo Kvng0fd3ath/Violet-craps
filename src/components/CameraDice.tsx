@@ -17,10 +17,13 @@ export function CameraDice({ onClose, onConfirm, active }: { onClose: () => void
   const videoRef = useRef<HTMLVideoElement>(null);
   const panelRef = useRef<HTMLElement>(null);
   const trackerRef = useRef(new ScanTracker());
-  const [status, setStatus] = useState("Opening camera…");
+  const [status, setStatus] = useState("Click Enable camera to begin. Your browser may ask for permission.");
   const [ready, setReady] = useState(false);
   const [dice, setDice] = useState<[number | null, number | null]>([null, null]);
-  const [retry, setRetry] = useState(0);
+  const [opening, setOpening] = useState(false);
+  const streamRef = useRef<MediaStream | null>(null);
+  const requestRef = useRef(0);
+  const hintRef = useRef<number | undefined>(undefined);
   const [device, setDevice] = useState("");
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
 
@@ -28,55 +31,76 @@ export function CameraDice({ onClose, onConfirm, active }: { onClose: () => void
     panelRef.current?.scrollIntoView({ block: "start", behavior: "smooth" });
   }, []);
 
-  useEffect(() => {
-    let cancelled = false;
-    let stream: MediaStream | null = null;
+  useEffect(() => () => {
+    requestRef.current++;
+    window.clearTimeout(hintRef.current);
+    streamRef.current?.getTracks().forEach((track) => track.stop());
+    streamRef.current = null;
+  }, []);
+
+  // Invoke getUserMedia directly from the user's click (important in some browsers).
+  const openCamera = async (cameraId = device) => {
+    const request = ++requestRef.current;
+    window.clearTimeout(hintRef.current);
+    streamRef.current?.getTracks().forEach((track) => track.stop());
+    streamRef.current = null;
+    if (videoRef.current) videoRef.current.srcObject = null;
     setReady(false);
-    setStatus("Opening camera…");
+    setOpening(false);
+    setDice([null, null]);
     trackerRef.current.reset();
-    const permissionHint = window.setTimeout(() => {
-      if (!cancelled) setStatus("Waiting for camera permission. Check your browser's address bar, or open the game in a new tab and retry.");
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setStatus("Camera access is unavailable here. Open this HTTPS page directly in a new tab and check browser permissions.");
+      return;
+    }
+    const policy = (document as Document & { permissionsPolicy?: { allowsFeature: (feature: string) => boolean }; featurePolicy?: { allowsFeature: (feature: string) => boolean } }).permissionsPolicy
+      ?? (document as Document & { featurePolicy?: { allowsFeature: (feature: string) => boolean } }).featurePolicy;
+    if (policy && !policy.allowsFeature("camera")) {
+      setStatus("This embedded preview blocks camera access. Click Open game in new tab below, then enable the camera there.");
+      return;
+    }
+    setOpening(true);
+    setStatus("Opening camera… Allow camera access if your browser asks.");
+    hintRef.current = window.setTimeout(() => {
+      if (request === requestRef.current) setStatus("Waiting for camera permission. Check the address bar, or open the game in a new tab and try again.");
     }, 8000);
-    async function openCamera() {
-      if (!navigator.mediaDevices?.getUserMedia) {
-        window.clearTimeout(permissionHint);
-        setStatus("Camera access is unavailable here. Open this HTTPS page directly in a new tab and check browser permissions.");
-        return;
+    let stream: MediaStream | null = null;
+    try {
+      const video = cameraId ? { deviceId: { exact: cameraId } } : { facingMode: { ideal: "environment" } };
+      stream = await navigator.mediaDevices.getUserMedia({ video, audio: false });
+      if (request !== requestRef.current) { stream.getTracks().forEach((track) => track.stop()); return; }
+      streamRef.current = stream;
+      stream.getVideoTracks().forEach((track) => {
+        track.onended = () => { if (request === requestRef.current) { setReady(false); setStatus("The camera stopped. Reconnect it and enable it again."); } };
+      });
+      if (!videoRef.current) { stream.getTracks().forEach((track) => track.stop()); return; }
+      videoRef.current.srcObject = stream;
+      await videoRef.current.play();
+      if (request !== requestRef.current) { stream.getTracks().forEach((track) => track.stop()); return; }
+      window.clearTimeout(hintRef.current);
+      setOpening(false);
+      setReady(true);
+      setStatus("Camera connected. Throw the dice in view; the reader watches for movement.");
+      if (navigator.mediaDevices.enumerateDevices) {
+        const all = await navigator.mediaDevices.enumerateDevices().catch(() => []);
+        if (request === requestRef.current) setDevices(all.filter((item) => item.kind === "videoinput"));
       }
-      try {
-        const video = device ? { deviceId: { exact: device } } : { facingMode: { ideal: "environment" } };
-        stream = await navigator.mediaDevices.getUserMedia({ video, audio: false });
-        if (cancelled) { stream.getTracks().forEach((track) => track.stop()); return; }
-        stream.getVideoTracks().forEach((track) => {
-          track.onended = () => { if (!cancelled) { setReady(false); setStatus("The camera stopped. Reconnect it and retry."); } };
-        });
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          await videoRef.current.play();
-          if (cancelled) return;
-          window.clearTimeout(permissionHint);
-          setReady(true);
-          setStatus("Watching for dice movement. Throw the dice in view.");
-        }
-        if (navigator.mediaDevices.enumerateDevices) {
-          const all = await navigator.mediaDevices.enumerateDevices().catch(() => []);
-          if (!cancelled) setDevices(all.filter((item) => item.kind === "videoinput"));
-        }
-      } catch (error) {
-        window.clearTimeout(permissionHint);
-        stream?.getTracks().forEach((track) => track.stop());
-        if (!cancelled) setStatus(cameraError(error));
+    } catch (error) {
+      stream?.getTracks().forEach((track) => track.stop());
+      if (request === requestRef.current) {
+        streamRef.current = null;
+        window.clearTimeout(hintRef.current);
+        setOpening(false);
+        setStatus(cameraError(error));
       }
     }
-    void openCamera();
-    return () => { cancelled = true; window.clearTimeout(permissionHint); stream?.getTracks().forEach((track) => track.stop()); if (videoRef.current) videoRef.current.srcObject = null; };
-  }, [retry, device]);
+  };
 
-  // Disable stale results whenever the shooter/point/roll state changes.
+  // Discard stale readings when the shooter or table state changes.
   useEffect(() => {
     trackerRef.current.reset();
     setDice([null, null]);
-  }, [active, device, retry]);
+  }, [active, device]);
 
   useEffect(() => {
     if (!ready || !active || dice[0] !== null || dice[1] !== null) return;
@@ -110,10 +134,13 @@ export function CameraDice({ onClose, onConfirm, active }: { onClose: () => void
       </div>
       <p className="mt-2 text-xs leading-5 text-purple-100/80">Aim straight down at the landing area. Use two separated white dice with dark dots on a plain dark surface and good lighting.</p>
       <video ref={videoRef} muted playsInline autoPlay className="mt-3 aspect-video max-h-64 w-full rounded-xl bg-black object-contain" aria-label="Live camera preview" />
-      {devices.length > 1 && <label className="mt-2 block text-xs text-purple-100">Camera <select value={device} onChange={(e) => setDevice(e.target.value)} className="ml-2 rounded-lg bg-felt-800 p-2 text-white"><option value="">Default camera</option>{devices.map((item, i) => <option key={item.deviceId} value={item.deviceId}>{item.label || `Camera ${i + 1}`}</option>)}</select></label>}
+      {devices.length > 1 && <label className="mt-2 block text-xs text-purple-100">Camera <select value={device} onChange={(e) => { setDevice(e.target.value); void openCamera(e.target.value); }} className="ml-2 rounded-lg bg-felt-800 p-2 text-white"><option value="">Default camera</option>{devices.map((item, i) => <option key={item.deviceId} value={item.deviceId}>{item.label || `Camera ${i + 1}`}</option>)}</select></label>}
       <p className="mt-2 rounded-lg bg-black/50 px-3 py-2 text-sm font-semibold text-gold-200" role="status">{status}</p>
       {!active && <p className="mt-1 text-xs text-purple-200/80">Scanning is paused while the table is busy or another shooter has the dice.</p>}
-      {!ready && <div className="mt-2 flex flex-wrap gap-2"><button type="button" onClick={() => setRetry((n) => n + 1)} className="rounded-lg border border-white/30 px-3 py-2 text-xs text-white">Retry camera</button><a href={window.location.href} target="_blank" rel="noopener noreferrer" className="rounded-lg border border-white/30 px-3 py-2 text-xs text-white">Open in new tab</a></div>}
+      <div className="mt-2 flex flex-wrap gap-2">
+        {!ready && <button type="button" onClick={() => void openCamera()} className="rounded-lg border border-gold-400/60 bg-gold-400/15 px-3 py-2 text-sm font-bold text-gold-200">{opening ? "Try camera again" : "Enable camera"}</button>}
+        <a href={window.location.href} target="_blank" rel="noopener noreferrer" className="rounded-lg border border-white/30 px-3 py-2 text-sm text-white">Open game in new tab</a>
+      </div>
       <div className="mt-3 grid grid-cols-2 gap-3">
         {([0, 1] as const).map((i) => <label key={i} className="text-xs font-bold text-purple-100">Die {i === 0 ? "A" : "B"}
           <select value={dice[i] ?? ""} disabled={!active} onChange={(e) => setDice((prev) => { const next: [number | null, number | null] = [...prev]; next[i] = e.target.value ? Number(e.target.value) : null; return next; })} className="mt-1 w-full rounded-xl border border-white/20 bg-felt-800 px-3 py-3 text-base text-white">
