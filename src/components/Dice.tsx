@@ -123,10 +123,10 @@ export function MiniDie({ value, size = 28, className }: { value: number; size?:
   return (
     <div
       className={cn(
-        "grid grid-cols-3 grid-rows-3 rounded-[22%] bg-gradient-to-b from-white to-violet-100 p-[9%] shadow-[inset_0_1px_2px_rgba(255,255,255,0.9),inset_0_-2px_4px_rgba(76,29,149,0.25),0_2px_4px_rgba(0,0,0,0.4)]",
+        "grid grid-cols-3 grid-rows-3 rounded-[22%] bg-gradient-to-b from-white to-violet-100 shadow-[inset_0_1px_2px_rgba(255,255,255,0.9),inset_0_-2px_4px_rgba(76,29,149,0.25),0_2px_4px_rgba(0,0,0,0.4)]",
         className
       )}
-      style={{ width: size, height: size }}
+      style={{ width: size, height: size, padding: size * 0.09 }}
     >
       {Array.from({ length: 9 }, (_, i) => (
         <span key={i} className={cn("pip pip-xl", !PIPS[value].includes(i) && "empty")} />
