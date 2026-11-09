@@ -338,3 +338,6 @@ input, textarea {
     will-change: transform;
   }
 }
+
+/* Do not let the tall manual keypad cover the camera panel. */
+.roll-controls.camera-active { position: relative; }
