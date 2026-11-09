@@ -3,7 +3,7 @@ import { Dices, Coins, Volume2, VolumeX, Info, Plus, Users, Trophy } from "lucid
 import { cn } from "./utils/cn";
 import { useCraps, BetSpot, type Mode } from "./hooks/useCraps";
 import { fmt, POINT_NUMBERS, type PointNumber } from "./game/craps";
-import { initAudio, playRattle, playOutcome, playChip, vibrate, callDice, setAudioMuted } from "./game/audio";
+import { initAudio, playRattle, playOutcome, playChip, vibrate, setAudioMuted } from "./game/audio";
 import { TableFelt } from "./components/TableFelt";
 import { RollBar } from "./components/RollBar";
 import { HelpSheet } from "./components/HelpSheet";
@@ -53,7 +53,6 @@ export default function App() {
       window.clearTimeout(rollTimer.current);
       rollTimer.current = window.setTimeout(() => {
         setRolling(false);
-        if (soundRef.current) callDice(msg.d1, msg.d2);
       }, ROLL_MS);
     },
     [dispatch, state.soundOn]
@@ -136,7 +135,6 @@ export default function App() {
     window.clearTimeout(rollTimer.current);
     rollTimer.current = window.setTimeout(() => {
       setRolling(false);
-      if (soundRef.current) callDice(d1, d2);
     }, ROLL_MS);
   };
 
@@ -198,7 +196,7 @@ export default function App() {
 
       <div className="game-layout relative z-10 mx-auto flex min-h-dvh w-full max-w-lg flex-col md:max-w-3xl">
         {/* ------------------------------ header ------------------------------ */}
-        <header className="safe-top sticky top-0 z-30 border-b border-gold-400/15 bg-felt-950/80 backdrop-blur-md">
+        <header className="game-header safe-top sticky top-0 z-30 border-b border-gold-400/15 bg-felt-950/80 backdrop-blur-md">
           <div className="flex items-center justify-between gap-2 px-4 py-2.5">
             <div className="flex items-center gap-2.5">
               <div className="grid h-9 w-9 place-items-center rounded-xl btn-press text-purple-950">

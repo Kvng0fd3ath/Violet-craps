@@ -67,36 +67,9 @@ export function playRattle() {
   }
 }
 
-/** The browser supplies installed voices; their availability varies by device. */
-export function chooseDealerVoice(voices: SpeechSynthesisVoice[]): SpeechSynthesisVoice | undefined {
-  const english = voices.filter((voice) => /^en(?:-|_|$)/i.test(voice.lang));
-  return english.find((voice) => /female|samantha|victoria|karen|moira|tessa|zira|aria|jenny|susan|ava|allison|serena/i.test(voice.name))
-    ?? english.find((voice) => /^en[-_]us/i.test(voice.lang))
-    ?? english[0];
-}
-
-export function callDice(d1: number, d2: number) {
-  if (muted || typeof window === "undefined" || !("speechSynthesis" in window) || typeof SpeechSynthesisUtterance === "undefined") return;
-  try {
-    const speech = window.speechSynthesis;
-    speech.cancel();
-    const call = new SpeechSynthesisUtterance(`${d1} and ${d2}, ${d1 + d2}.`);
-    const voice = chooseDealerVoice(speech.getVoices());
-    if (voice) call.voice = voice;
-    call.lang = voice?.lang ?? "en-US";
-    call.rate = 0.95;
-    speech.speak(call);
-  } catch {
-    // Speech is optional; the visual dice and results remain available.
-  }
-}
-
 export function setAudioMuted(value: boolean) {
   muted = value;
   if (ctx && output) output.gain.setValueAtTime(value ? 0 : 1, ctx.currentTime);
-  if (value && typeof window !== "undefined" && "speechSynthesis" in window) {
-    window.speechSynthesis.cancel();
-  }
 }
 
 export function playOutcome(kind: "win" | "lose" | "point") {
