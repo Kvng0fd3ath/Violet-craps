@@ -61,7 +61,7 @@ function Spot({
       aria-label={label}
       onClick={onTap}
       className={cn(
-        "spot relative border border-white/15 bg-white/[0.045] backdrop-blur-[1px]",
+        "spot relative border border-white/15 bg-white/[0.045]",
         flash && "win-flash border-gold-400/70",
         className
       )}

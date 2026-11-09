@@ -256,6 +256,17 @@ body {
   background-color: #16032e;
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
+  /* Own stacking context. Deliberately no transform/will-change here: forcing a
+     compositing layer on a sticky bar is itself a known source of ghosted,
+     double-drawn text on iOS. */
+  isolation: isolate;
+}
+
+/* Nothing may sit on top of the bar and blur it. */
+.game-header,
+.game-header * {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
 }
 
 /*
