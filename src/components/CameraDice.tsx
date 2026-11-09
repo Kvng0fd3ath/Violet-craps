@@ -19,6 +19,7 @@ export function CameraDice({ onClose, onConfirm, active }: { onClose: () => void
   const trackerRef = useRef(new ScanTracker());
   const [status, setStatus] = useState("Click Enable camera to begin. Your browser may ask for permission.");
   const [ready, setReady] = useState(false);
+  const [showPreview, setShowPreview] = useState(true);
   const [dice, setDice] = useState<[number | null, number | null]>([null, null]);
   const [opening, setOpening] = useState(false);
   const streamRef = useRef<MediaStream | null>(null);
@@ -133,7 +134,11 @@ export function CameraDice({ onClose, onConfirm, active }: { onClose: () => void
         <button type="button" onClick={onClose} aria-label="Stop camera" className="rounded-full bg-white/10 p-2"><X size={20} /></button>
       </div>
       <p className="mt-2 text-xs leading-5 text-purple-100/80">Aim straight down at the landing area. Use two separated white dice with dark dots on a plain dark surface and good lighting.</p>
-      <video ref={videoRef} muted playsInline autoPlay className="mt-3 aspect-video max-h-64 w-full rounded-xl bg-black object-contain" aria-label="Live camera preview" />
+      <div className="mt-3 flex items-center gap-3">
+        <button type="button" aria-pressed={!showPreview} onClick={() => setShowPreview((visible) => !visible)} className="rounded-lg border border-white/30 px-3 py-2 text-xs font-bold text-white">{showPreview ? "Hide camera picture" : "Show camera picture"}</button>
+        <span className="text-xs text-purple-200/75">{showPreview ? "Use the picture to aim your camera." : "Camera picture hidden; the scanner remains open."}</span>
+      </div>
+      <video ref={videoRef} muted playsInline autoPlay aria-label="Live camera preview" aria-hidden={!showPreview} className={showPreview ? "mt-2 aspect-video w-full max-w-[280px] rounded-xl bg-black object-contain" : "pointer-events-none absolute h-px w-px opacity-0"} />
       {devices.length > 1 && <label className="mt-2 block text-xs text-purple-100">Camera <select value={device} onChange={(e) => { setDevice(e.target.value); void openCamera(e.target.value); }} className="ml-2 rounded-lg bg-felt-800 p-2 text-white"><option value="">Default camera</option>{devices.map((item, i) => <option key={item.deviceId} value={item.deviceId}>{item.label || `Camera ${i + 1}`}</option>)}</select></label>}
       <p className="mt-2 rounded-lg bg-black/50 px-3 py-2 text-sm font-semibold text-gold-200" role="status">{status}</p>
       {!active && <p className="mt-1 text-xs text-purple-200/80">Scanning is paused while the table is busy or another shooter has the dice.</p>}
