@@ -79,7 +79,7 @@ export function ChipStack({
           {short}
         </span>
       </div>
-      <span className="stack-amount -mt-0.5 rounded-full bg-black/45 px-1.5 py-px text-[10px] font-bold leading-4 text-gold-300 backdrop-blur-sm">
+      <span className="stack-amount -mt-0.5 rounded-full bg-black/50 px-1.5 py-px text-[10px] font-bold leading-4 text-gold-300">
         {fmt(amount)}
       </span>
     </div>

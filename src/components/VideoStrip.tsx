@@ -100,7 +100,7 @@ export function VideoStrip({
           animate={{ height: "auto", opacity: 1 }}
           exit={{ height: 0, opacity: 0 }}
           transition={{ duration: 0.22 }}
-          className="overflow-hidden border-b border-gold-400/15 bg-black/25 backdrop-blur-sm"
+          className="overflow-hidden border-b border-gold-400/15 bg-black/30"
         >
           <div className="no-scrollbar flex items-center gap-2 overflow-x-auto px-3 py-2">
             {/* mic / cam controls */}

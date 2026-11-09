@@ -141,7 +141,7 @@ export function RollBar({
 
   return (
     <div className="roll-controls sticky bottom-0 z-40 mt-2">
-      <div className="controls-panel safe-bottom rounded-t-[26px] border-t border-gold-400/30 bg-felt-950/92 shadow-[0_-18px_44px_rgba(0,0,0,0.55)] backdrop-blur-xl">
+      <div className="controls-panel safe-bottom rounded-t-[26px] border-t border-gold-400/30 bg-felt-950/95 shadow-[0_-18px_44px_rgba(0,0,0,0.55)]">
         {/* ---------- press / pinch / pocket decisions ---------- */}
         <AnimatePresence initial={false}>
           {pendingTotal > 0 && (
