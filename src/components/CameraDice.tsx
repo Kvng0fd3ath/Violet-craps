@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Camera, X } from "lucide-react";
-import { detectDice } from "../camera/detectDice";
+import { detectDice, type DiceAppearance } from "../camera/detectDice";
 import { ScanTracker } from "../camera/scanTracker";
 
 function cameraError(error: unknown): string {
@@ -20,6 +20,7 @@ export function CameraDice({ onClose, onConfirm, active }: { onClose: () => void
   const [status, setStatus] = useState("Click Enable camera to begin. Your browser may ask for permission.");
   const [ready, setReady] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+  const [appearance, setAppearance] = useState<DiceAppearance>("dark");
   const [dice, setDice] = useState<[number | null, number | null]>([null, null]);
   const [opening, setOpening] = useState(false);
   const streamRef = useRef<MediaStream | null>(null);
@@ -101,7 +102,7 @@ export function CameraDice({ onClose, onConfirm, active }: { onClose: () => void
   useEffect(() => {
     trackerRef.current.reset();
     setDice([null, null]);
-  }, [active, device]);
+  }, [active, device, appearance]);
 
   useEffect(() => {
     if (!ready || !active || dice[0] !== null || dice[1] !== null) return;
@@ -116,7 +117,7 @@ export function CameraDice({ onClose, onConfirm, active }: { onClose: () => void
       try {
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
         const frame = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const result = trackerRef.current.next(frame, () => detectDice(frame));
+        const result = trackerRef.current.next(frame, () => detectDice(frame, appearance));
         if (result) { setDice(result); setStatus("Dice found. Check both values, then confirm."); }
       } catch {
         window.clearInterval(timer);
@@ -124,7 +125,7 @@ export function CameraDice({ onClose, onConfirm, active }: { onClose: () => void
       }
     }, 300);
     return () => window.clearInterval(timer);
-  }, [ready, active, dice]);
+  }, [ready, active, dice, appearance]);
 
   const resetScan = () => { trackerRef.current.reset(); setDice([null, null]); setStatus("Watching for dice movement. Throw the dice in view."); };
   return (
@@ -143,7 +144,14 @@ export function CameraDice({ onClose, onConfirm, active }: { onClose: () => void
             <h2 id="camera-title" className="font-display text-base font-bold text-gold-300">Live dice camera</h2>
             <button type="button" onClick={onClose} aria-label="Stop camera" className="rounded-full bg-white/10 p-2"><X size={20} /></button>
           </div>
-          <p className="mt-2 text-xs leading-5 text-purple-100/80">Aim straight down at the landing area. Use two separated white dice with dark dots on a plain dark surface and good lighting.</p>
+          <p className="mt-2 text-xs leading-5 text-purple-100/80">Aim straight down, close enough to see the dots clearly. Keep both dice separate and use good, even lighting.</p>
+          <label className="mt-3 block text-xs font-bold text-purple-100">Dice color
+            <select value={appearance} onChange={(event) => setAppearance(event.target.value as DiceAppearance)} className="ml-2 rounded-lg border border-white/25 bg-felt-800 px-3 py-2 text-sm text-white">
+              <option value="dark">Dark dice, light dots</option>
+              <option value="light">Light dice, dark dots</option>
+            </select>
+          </label>
+          <p className="mt-2 text-xs text-gold-200">{appearance === "dark" ? "Use a plain light-colored surface, like white paper, so dark dice stand out." : "Use a plain dark surface so light dice stand out."}</p>
           <button type="button" onClick={() => setCollapsed(true)} className="mt-3 rounded-lg border border-white/30 px-3 py-2 text-xs font-bold text-white">Hide camera panel</button>
         </>
       )}

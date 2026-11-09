@@ -1,10 +1,22 @@
 /**
- * Experimental, on-device reader for two separated light dice with dark pips.
+ * Experimental, on-device reader for two separated, high-contrast dice.
  * A suggestion only: lighting, backgrounds and camera angle can cause mistakes.
  */
-export function detectDice(image: Pick<ImageData, "data" | "width" | "height">): [number, number] | null {
-  const { data, width: w, height: h } = image;
-  if (w < 1 || h < 1 || data.length !== w * h * 4) return null;
+export type DiceAppearance = "light" | "dark";
+
+export function detectDice(image: Pick<ImageData, "data" | "width" | "height">, appearance: DiceAppearance = "light"): [number, number] | null {
+  const { width: w, height: h } = image;
+  if (w < 1 || h < 1 || image.data.length !== w * h * 4) return null;
+  // Normalize dark dice on a light surface to the same polarity as light dice.
+  // This preserves alpha and never modifies the original frame.
+  const data = appearance === "dark" ? new Uint8ClampedArray(image.data) : image.data;
+  if (appearance === "dark") {
+    for (let i = 0; i < data.length; i += 4) {
+      data[i] = 255 - data[i];
+      data[i + 1] = 255 - data[i + 1];
+      data[i + 2] = 255 - data[i + 2];
+    }
+  }
   const count = w * h;
   const light = new Uint8Array(count);
   const seen = new Uint8Array(count);

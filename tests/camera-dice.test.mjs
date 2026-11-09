@@ -27,3 +27,20 @@ test('does not guess when only one die is visible or image is invalid', () => {
   assert.equal(detectDice(image([3])), null);
   assert.equal(detectDice({ width: 1, height: 1, data: new Uint8ClampedArray() }), null);
 });
+
+test('reads dark dice with light pips against a light background', () => {
+  for (let a = 1; a <= 6; a++) for (let b = 1; b <= 6; b++) {
+    const source = image([a, b]);
+    for (let i = 0; i < source.data.length; i += 4) {
+      source.data[i] = 255 - source.data[i];
+      source.data[i + 1] = 255 - source.data[i + 1];
+      source.data[i + 2] = 255 - source.data[i + 2];
+    }
+    const original = new Uint8ClampedArray(source.data);
+    assert.deepEqual(detectDice(source, 'dark'), [a, b]);
+    assert.deepEqual(source.data, original);
+  }
+  const one = image([3]);
+  for (let i = 0; i < one.data.length; i += 4) for (let c = 0; c < 3; c++) one.data[i + c] = 255 - one.data[i + c];
+  assert.equal(detectDice(one, 'dark'), null);
+});
