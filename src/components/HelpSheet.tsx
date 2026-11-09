@@ -212,10 +212,7 @@ export function HelpSheet({
                   onClick={onToggleSound}
                   className="flex w-full items-center justify-between rounded-xl border border-white/10 bg-white/[0.05] px-3.5 py-3 text-left active:scale-[0.99]"
                 >
-                  <div>
-                    <div className="text-sm font-bold text-white">Table sounds &amp; dealer calls</div>
-                    <div className="text-[10px] text-purple-200/65">Dealer voice depends on your device and browser.</div>
-                  </div>
+                  <div className="text-sm font-bold text-white">Table sounds</div>
                   {soundOn ? <Volume2 size={22} className="text-gold-400" /> : <VolumeX size={22} className="text-white/40" />}
                 </button>
               </div>

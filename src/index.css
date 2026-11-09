@@ -312,3 +312,29 @@ input, textarea {
     white-space: nowrap;
   }
 }
+
+/* On desktop, avoid expensive full-window noise and repeated backdrop filters. */
+@media (hover: hover) and (pointer: fine) {
+  .felt-grain {
+    display: none;
+  }
+  .game-header,
+  .controls-panel,
+  .game-table .spot,
+  .game-table .stack-amount {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  .game-header {
+    background-color: #16032e;
+  }
+  .controls-panel {
+    background-color: #16032e;
+  }
+  .game-table .chip-stack {
+    filter: none;
+  }
+  .die-cube {
+    will-change: transform;
+  }
+}
