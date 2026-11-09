@@ -330,13 +330,14 @@ export function RollBar({
                       onClick={() => onKeypad(v)}
                       aria-label={`Die face ${v}`}
                       className={cn(
-                        "grid h-12 place-items-center rounded-xl border transition-all active:scale-95",
+                        "relative grid h-12 place-items-center rounded-xl border transition-all active:scale-95",
                         (manualSlot === 0 ? manual[0] : manual[1]) === v
                           ? "border-gold-400/60 bg-gold-400/15"
                           : "border-white/10 bg-white/[0.07] active:bg-gold-400/20"
                       )}
                     >
-                      <MiniDie value={v} size={32} />
+                      <MiniDie value={v} size={34} />
+                      <span aria-hidden="true" className="absolute right-1.5 top-1 text-[10px] font-bold text-purple-100/80">{v}</span>
                     </button>
                   ))}
                 </div>
