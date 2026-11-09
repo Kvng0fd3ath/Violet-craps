@@ -49,13 +49,25 @@ body {
     radial-gradient(120% 80% at 50% -10%, rgba(139, 92, 246, 0.5) 0%, rgba(76, 29, 149, 0) 55%),
     radial-gradient(140% 110% at 50% 30%, #5b21b6 0%, #3b1273 42%, #1c0536 100%);
 }
+/*
+ * Soft felt texture.
+ *
+ * This used to be a fixed, full-viewport layer with `mix-blend-mode: overlay`.
+ * On iOS that blends the entire page into one offscreen pass — everything
+ * under it, the sticky header included, gets rasterised through the blend and
+ * comes out smeared. Desktop already skipped it, which is why phones were the
+ * only place it looked wrong. Plain low-opacity noise gives the same felt
+ * grain with no blending, and it is masked off the top of the screen where the
+ * bright glow would otherwise turn it grey.
+ */
 .felt-grain {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  opacity: 0.5;
-  mix-blend-mode: overlay;
+  opacity: 0.16;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+  -webkit-mask-image: linear-gradient(180deg, transparent 0, transparent 96px, #000 190px, #000 100%);
+  mask-image: linear-gradient(180deg, transparent 0, transparent 96px, #000 190px, #000 100%);
 }
 .felt-vignette {
   position: absolute;
@@ -237,15 +249,47 @@ body {
 /*
  * Opaque header. A translucent, blurred bar let the bright felt glow bleed
  * through, so content scrolling underneath looked hazy around the Dynamic
- * Island / status bar. Fill it solidly (with a faint top→bottom shade) and the
- * header stays legible whatever is behind it.
+ * Island / status bar. Fill it solidly and the header stays legible whatever
+ * is behind it.
  */
 .game-header {
   background-color: #16032e;
-  background-image: linear-gradient(180deg, #1e0a3a 0%, #16032e 100%);
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
 }
+
+/*
+ * Keep the header crisply rasterised.
+ *
+ * 1. `gold-text` paints the wordmark with `background-clip: text` on a
+ *    transparent glyph fill. In a sticky, composited layer iOS re-rasterises
+ *    that clip as the bar scrolls, and the 15px letters come out smeared.
+ *    Painting the wordmark as a flat gold `color` removes the clip entirely.
+ * 2. The micro-labels sat at 8–8.5px — under the sub-pixel grid once the
+ *    device pixel ratio is applied, which reads as blur. Round them up to a
+ *    legible 10px and ease the extreme tracking that fringed the glyph edges.
+ */
+.game-header .header-wordmark {
+  color: #ffe29a;
+  background: none;
+  -webkit-background-clip: border-box;
+  background-clip: border-box;
+  font-size: 14px;
+  line-height: 1.15;
+  letter-spacing: 0.1em;
+}
+.game-header .header-subtitle {
+  font-size: 9px;
+  line-height: 1.2;
+  letter-spacing: 0.14em;
+  margin-top: 1px;
+}
+  .game-header .header-readout {
+  font-size: 10px;
+  line-height: 1.25;
+  letter-spacing: 0;
+}
+
 .safe-bottom {
   padding-bottom: max(env(safe-area-inset-bottom), 10px);
 }
