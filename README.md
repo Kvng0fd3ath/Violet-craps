@@ -4,11 +4,11 @@ A Vite/React craps app for phones and desktop browsers.
 
 Open the deployed URL on a PC to play with a mouse or keyboard; no installation is required. Choose a chip, click a betting spot, and click Roll. Share a table code from the lobby to play with friends across desktop and mobile devices. Camera and microphone access require browser permission and a secure HTTPS connection.
 
-## Experimental camera dice reader
+## Experimental live camera dice reader
 
-In **Manual** mode, choose **Scan real dice with camera**. Allow camera access, point the camera straight down at two separated white dice with dark pips on a plain dark surface, and press **Scan dice**. Check or correct both suggested values before pressing **Confirm and record roll**. You can also enter both values if scanning fails. The camera is stopped when the dialog closes; scanning is performed on the device and the camera image is not uploaded. In a room, the confirmed roll is shared as usual, not the scan image.
+In **Manual** mode, choose **Start live dice camera** and allow access. Point the camera straight down at a dark, plain landing area. After you throw two separated white dice with dark pips into view, the reader watches for motion and suggests a result once the dice appear stable. Check or correct both values, then press **Confirm and record roll**. The camera stays open for the next throw. The reader waits for fresh movement before suggesting another result; it pauses while the table is busy or another player is shooting. You can also enter both dice manually. Use the X or **Stop dice camera** to stop the camera.
 
-This is a basic image reader, not a trained vision model. It can fail or misread dice because of lighting, reflections, angle, colors, or background objects. Always verify the result. Camera access requires HTTPS (or localhost) and permission, and may be unavailable while another app or the lobby video is using the camera. Device camera behavior has not been verified on all phones and webcams.
+Frames are analyzed locally, not recorded or uploaded. In a room, only the confirmed roll is shared as usual. The reader is experimental, not a trained vision model: lighting, reflections, angle, background and color can cause missed or incorrect readings. Always verify the result. Camera access requires HTTPS and browser permission; open the site directly in a new tab if embedded preview permissions block the camera. Close other apps or lobby video if they occupy the camera. Real webcam and phone performance must be tested with your setup.
 
 ## Run locally
 

@@ -40,7 +40,6 @@ export default function App() {
   // a remote shooter's dice land on everyone's felt; their point is authoritative
   const handleRemoteRoll = useCallback(
     (msg: RollMsg) => {
-      setCameraOpen(false);
       initAudio();
       if (state.soundOn) playRattle();
       vibrate([0, 20, 60, 20]);
@@ -104,8 +103,8 @@ export default function App() {
   /* ------------------------------ actions ------------------------------ */
 
   useEffect(() => {
-    if (state.mode !== "manual" || !isShooter || rolling || state.pointDecision !== null) setCameraOpen(false);
-  }, [state.mode, isShooter, rolling, state.pointDecision]);
+    if (state.mode !== "manual") setCameraOpen(false);
+  }, [state.mode]);
 
   const handleSpot = (spot: BetSpot) => {
     if (rolling) return;
@@ -304,6 +303,10 @@ export default function App() {
           onOpenLobby={() => setLobbyOpen(true)}
         />
 
+        {cameraOpen && state.mode === "manual" && (
+          <CameraDice onClose={() => setCameraOpen(false)} onConfirm={(dice) => handleRoll(dice)} active={isShooter && !rolling && state.pointDecision === null} />
+        )}
+
         {/* ------------------------------ the felt ------------------------------ */}
         <main className="flex-1">
           <TableFelt
@@ -348,7 +351,8 @@ export default function App() {
           }}
           rolling={rolling}
           onRoll={() => handleRoll()}
-          onCamera={() => setCameraOpen(true)}
+          onCamera={() => setCameraOpen((open) => !open)}
+          cameraOpen={cameraOpen}
           lastRoll={state.lastRoll}
           point={state.point}
           manual={manual}
@@ -359,10 +363,6 @@ export default function App() {
           shooterName={shooter?.isSelf ? "You" : (shooter?.name ?? null)}
         />
       </div>
-
-      {cameraOpen && state.mode === "manual" && isShooter && !rolling && state.pointDecision === null && (
-        <CameraDice onClose={() => setCameraOpen(false)} onConfirm={(dice) => { setCameraOpen(false); handleRoll(dice); }} />
-      )}
 
       <UpdateBar show={updateReady} onApply={applyUpdate} />
       <Toasts toasts={state.toasts} />

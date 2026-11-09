@@ -95,6 +95,7 @@ export function RollBar({
   rolling,
   onRoll,
   onCamera,
+  cameraOpen,
   lastRoll,
   point,
   manual,
@@ -122,6 +123,7 @@ export function RollBar({
   rolling: boolean;
   onRoll: () => void;
   onCamera: () => void;
+  cameraOpen: boolean;
   lastRoll: [number, number] | null;
   point: PointNumber | null;
   manual: [number, number];
@@ -339,8 +341,8 @@ export function RollBar({
                   ))}
                 </div>
               </div>
-              <button type="button" onClick={onCamera} disabled={rolling || !isShooter} className="mx-3 mt-2 flex items-center gap-2 rounded-xl border border-gold-400/40 bg-gold-400/10 px-3 py-2 text-xs font-bold text-gold-200 disabled:opacity-40">
-                <Camera size={16} /> Scan real dice with camera
+              <button type="button" onClick={onCamera} disabled={!cameraOpen && (rolling || !isShooter)} className="mx-3 mt-2 flex items-center gap-2 rounded-xl border border-gold-400/40 bg-gold-400/10 px-3 py-2 text-xs font-bold text-gold-200 disabled:opacity-40">
+                <Camera size={16} /> {cameraOpen ? "Stop dice camera" : "Start live dice camera"}
               </button>
               <div className="px-3 pt-1 text-center text-[9px] font-semibold text-purple-200/55">
                 Select a face for die {manualSlot === 0 ? "A" : "B"} — cursor hops to the next die
