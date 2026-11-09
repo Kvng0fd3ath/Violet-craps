@@ -77,6 +77,7 @@ function KeySlot({ value, label, active }: { value: number; label: string; activ
 
 export function RollBar({
   mode,
+  modeLocked,
   onMode,
   chip,
   onChip,
@@ -102,6 +103,7 @@ export function RollBar({
   shooterName,
 }: {
   mode: Mode;
+  modeLocked: boolean;
   onMode: (m: Mode) => void;
   chip: number;
   onChip: (c: number) => void;
@@ -232,9 +234,12 @@ export function RollBar({
                 key={m}
                 type="button"
                 onClick={() => onMode(m)}
+                disabled={modeLocked}
+                title={modeLocked ? "Roll mode is locked during the tournament" : undefined}
                 className={cn(
                   "flex items-center gap-1 rounded-full px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wide transition-colors",
-                  mode === m ? "bg-gold-400 text-purple-950" : "text-white/60"
+                  mode === m ? "bg-gold-400 text-purple-950" : "text-white/60",
+                  modeLocked && "opacity-60"
                 )}
               >
                 <Icon size={12} strokeWidth={2.5} />

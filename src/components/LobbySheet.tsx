@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { cn } from "../utils/cn";
 import { randomRoomCode, type RoomApi } from "../net/useRoom";
-import { TOURNAMENT_BUYINS, type Tournament } from "../hooks/useCraps";
+import { TOURNAMENT_BUYINS, type Tournament, type Mode } from "../hooks/useCraps";
 import { fmt } from "../game/craps";
 
 export function LobbySheet({
@@ -26,6 +26,7 @@ export function LobbySheet({
   room,
   shooterId,
   tournament,
+  currentMode,
   onStartTournament,
   onEndTournament,
 }: {
@@ -34,13 +35,16 @@ export function LobbySheet({
   room: RoomApi;
   shooterId: string | null;
   tournament: Tournament;
-  onStartTournament: (buyIn: number) => void;
+  currentMode: Mode;
+  onStartTournament: (buyIn: number, mode: Mode) => void;
   onEndTournament: () => void;
 }) {
   const [codeInput, setCodeInput] = useState("");
   const [nameInput, setNameInput] = useState(room.name);
   const [copied, setCopied] = useState(false);
   const [buyIn, setBuyIn] = useState(5000);
+  const [tournamentMode, setTournamentMode] = useState<Mode | null>(null);
+  const selectedMode = tournamentMode ?? currentMode;
   const [confirmStart, setConfirmStart] = useState(false);
 
   const copyCode = async () => {
@@ -223,7 +227,7 @@ export function LobbySheet({
                               {fmt(tournament.buyIn)}
                             </div>
                             <div className="text-[10px] text-purple-200/65">
-                              starting stack · no rebuys
+                              starting stack · no rebuys · {currentMode} rolls locked
                             </div>
                           </div>
                           <div className="text-right text-[10px] text-purple-200/55">
@@ -272,6 +276,13 @@ export function LobbySheet({
                           ))}
                         </div>
 
+                        <div className="mt-3 text-[9px] font-black uppercase tracking-[0.2em] text-gold-300">Roll method · locked for the match</div>
+                        <div className="mt-1.5 flex gap-2">
+                          {(["virtual", "manual"] as const).map((mode) => (
+                            <button key={mode} type="button" onClick={() => { setTournamentMode(mode); setConfirmStart(false); }} aria-pressed={selectedMode === mode} className={cn("flex-1 rounded-lg border py-2 text-sm font-bold capitalize", selectedMode === mode ? "border-gold-400 bg-gold-400/20 text-gold-200" : "border-white/15 bg-white/5 text-white/65")}>{mode}</button>
+                          ))}
+                        </div>
+
                         {!confirmStart ? (
                           <button
                             type="button"
@@ -284,7 +295,7 @@ export function LobbySheet({
                         ) : (
                           <div className="mt-3 rounded-xl border border-gold-400/40 bg-gold-400/10 p-2.5">
                             <p className="text-center text-[11px] font-semibold leading-4 text-gold-200">
-                              Reset every rack at this table to {fmt(buyIn)} and lock rebuys?
+                              Reset every rack to {fmt(buyIn)}, lock rebuys and use {selectedMode} rolls for the match?
                             </p>
                             <div className="mt-2 flex gap-2">
                               <button
@@ -297,7 +308,7 @@ export function LobbySheet({
                               <button
                                 type="button"
                                 onClick={() => {
-                                  onStartTournament(buyIn);
+                                  onStartTournament(buyIn, selectedMode);
                                   setConfirmStart(false);
                                   onClose();
                                 }}

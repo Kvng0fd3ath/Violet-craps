@@ -23,6 +23,7 @@ export interface PeerInfo {
 export interface TourneyMsg {
   buyIn: number;
   startedBy: string;
+  mode: "virtual" | "manual";
   stamp: number;
   [k: string]: string | number;
 }
@@ -299,9 +300,10 @@ export function useRoom(
   );
 
   /** Kick off tournament play for the whole table. */
-  const startTournament = useCallback((buyIn: number) => {
+  const startTournament = useCallback((buyIn: number, mode: "virtual" | "manual") => {
     const msg: TourneyMsg = {
       buyIn,
+      mode,
       startedBy: presenceRef.current.name,
       stamp: Date.now(),
     };

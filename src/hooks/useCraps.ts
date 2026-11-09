@@ -49,6 +49,7 @@ export interface GameState {
   tournament: Tournament;
   bets: Bets;
   point: PointNumber | null;
+  pointDecision: PointNumber | null;
   pending: PendingWin[];
   lastRoll: [number, number] | null;
   rollId: number;
@@ -69,6 +70,7 @@ export interface GameState {
 
 type Action =
   | { type: "BET"; spot: BetSpot }
+  | { type: "POINT_BET_DECISION"; to: PointNumber | "pocket" | "keep" }
   | { type: "ROLL"; d1: number; d2: number; syncPoint?: PointNumber | null; shooter?: string }
   | { type: "PRESS" }
   | { type: "PINCH"; to: PointNumber }
@@ -83,7 +85,7 @@ type Action =
   | { type: "TOGGLE_SOUND" }
   | { type: "DISMISS_TOAST"; id: number }
   | { type: "RESET_SESSION" }
-  | { type: "START_TOURNAMENT"; buyIn: number; startedBy: string; stamp: number }
+  | { type: "START_TOURNAMENT"; buyIn: number; startedBy: string; stamp: number; mode: Mode }
   | { type: "END_TOURNAMENT" };
 
 let toastId = 1;
@@ -134,6 +136,7 @@ function hydrateState(): GameState {
       place: { ...base.bets.place, ...(savedBets.place ?? {}) },
       hard: { ...base.bets.hard, ...(savedBets.hard ?? {}) },
     },
+    pointDecision: loaded.pointDecision === loaded.point && loaded.point != null && (savedBets.place?.[loaded.point] ?? 0) > 0 ? loaded.point : null,
     pending: Array.isArray(loaded.pending) ? loaded.pending : [],
     history: [],
     toasts: [],
@@ -149,6 +152,7 @@ export const initialState = (): GameState => ({
   tournament: { active: false, buyIn: 0, startedBy: "", stamp: 0 },
   bets: emptyBets(),
   point: null,
+  pointDecision: null,
   pending: [],
   lastRoll: null,
   rollId: 0,
@@ -317,6 +321,7 @@ export function reducer(state: GameState, action: Action): GameState {
         ...state,
         bets: res.bets,
         point: nextPoint,
+        pointDecision: state.point === null && nextPoint !== null && res.bets.place[nextPoint] > 0 ? nextPoint : null,
         balance: state.balance + autoPocket + res.credit,
         pending: res.pending,
         lastRoll: [action.d1, action.d2],
@@ -332,6 +337,25 @@ export function reducer(state: GameState, action: Action): GameState {
           autoPocket > 0
             ? pushToast(state.toasts, `Same bet — ${fmt(autoPocket)} pocketed for you`)
             : state.toasts,
+      };
+    }
+
+    case "POINT_BET_DECISION": {
+      const from = state.pointDecision;
+      if (from === null || state.point !== from) return { ...state, pointDecision: null };
+      const amount = state.bets.place[from];
+      if (action.to === "keep" || amount <= 0) return { ...state, pointDecision: null };
+      if (action.to !== "pocket" && (action.to === from || ![4, 5, 6, 8, 9, 10].includes(action.to))) return state;
+      const bets = cloneBets(state.bets);
+      bets.place[from] = 0;
+      if (action.to !== "pocket") bets.place[action.to] += amount;
+      return {
+        ...state,
+        bets,
+        balance: state.balance + (action.to === "pocket" ? amount : 0),
+        pointDecision: null,
+        history: [],
+        toasts: pushToast(state.toasts, action.to === "pocket" ? `${fmt(amount)} returned to your rack` : `${fmt(amount)} moved from ${from} to ${action.to}`),
       };
     }
 
@@ -452,7 +476,7 @@ export function reducer(state: GameState, action: Action): GameState {
         ...initialState(),
         soundOn: state.soundOn,
         placeOnComeOut: state.placeOnComeOut,
-        mode: state.mode,
+        mode: action.mode,
         chip: state.chip,
         balance: action.buyIn,
         baseline: action.buyIn,
@@ -475,12 +499,12 @@ export function reducer(state: GameState, action: Action): GameState {
       };
 
     case "RESET_SESSION":
-      return initialState();
+      return state.tournament.active ? state : initialState();
 
     case "SET_CHIP":
       return { ...state, chip: action.chip, rakeMode: false };
     case "SET_MODE":
-      return { ...state, mode: action.mode };
+      return state.tournament.active ? state : { ...state, mode: action.mode };
     case "TOGGLE_RAKE":
       return { ...state, rakeMode: !state.rakeMode };
     case "TOGGLE_COME_OUT":

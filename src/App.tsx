@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Dices, Coins, Volume2, VolumeX, Info, Plus, Users, Trophy } from "lucide-react";
 import { cn } from "./utils/cn";
-import { useCraps, BetSpot } from "./hooks/useCraps";
-import { fmt, type PointNumber } from "./game/craps";
+import { useCraps, BetSpot, type Mode } from "./hooks/useCraps";
+import { fmt, POINT_NUMBERS, type PointNumber } from "./game/craps";
 import { initAudio, playRattle, playOutcome, playChip, vibrate } from "./game/audio";
 import { TableFelt } from "./components/TableFelt";
 import { RollBar } from "./components/RollBar";
@@ -10,7 +10,7 @@ import { HelpSheet } from "./components/HelpSheet";
 import { Toasts } from "./components/Toasts";
 import { VideoStrip } from "./components/VideoStrip";
 import { LobbySheet } from "./components/LobbySheet";
-import { useRoom, type RollMsg } from "./net/useRoom";
+import { useRoom, type RollMsg, type TourneyMsg } from "./net/useRoom";
 import { useAppUpdate } from "./net/useAppUpdate";
 import { UpdateBar } from "./components/UpdateBar";
 
@@ -51,12 +51,13 @@ export default function App() {
 
   // a peer started a tournament — reset to the agreed stack and lock rebuys
   const handleTournamentStart = useCallback(
-    (msg: { buyIn: number; startedBy: string; stamp: number }) => {
+    (msg: TourneyMsg) => {
       dispatch({
         type: "START_TOURNAMENT",
         buyIn: msg.buyIn,
         startedBy: msg.startedBy,
         stamp: msg.stamp,
+        mode: msg.mode === "manual" ? "manual" : "virtual",
       });
       vibrate([0, 30, 60, 30]);
     },
@@ -65,13 +66,14 @@ export default function App() {
 
   const room = useRoom(handleRemoteRoll, handleTournamentStart);
 
-  const startTournament = (buyIn: number) => {
-    const msg = room.startTournament(buyIn);
+  const startTournament = (buyIn: number, mode: Mode) => {
+    const msg = room.startTournament(buyIn, mode);
     dispatch({
       type: "START_TOURNAMENT",
       buyIn,
       startedBy: msg.startedBy || "You",
       stamp: msg.stamp,
+      mode,
     });
   };
 
@@ -98,7 +100,7 @@ export default function App() {
   };
 
   const handleRoll = () => {
-    if (rolling || !isShooter) return;
+    if (rolling || !isShooter || state.pointDecision !== null) return;
     initAudio();
     const d1 = state.mode === "virtual" ? 1 + Math.floor(Math.random() * 6) : manual[0];
     const d2 = state.mode === "virtual" ? 1 + Math.floor(Math.random() * 6) : manual[1];
@@ -302,6 +304,7 @@ export default function App() {
         {/* ------------------------------ sticky roll bar ------------------------------ */}
         <RollBar
           mode={state.mode}
+          modeLocked={state.tournament.active}
           onMode={(m) => dispatch({ type: "SET_MODE", mode: m })}
           chip={state.chip}
           onChip={(c) => dispatch({ type: "SET_CHIP", chip: c })}
@@ -364,9 +367,26 @@ export default function App() {
         room={room}
         shooterId={shooter?.id ?? null}
         tournament={state.tournament}
+        currentMode={state.mode}
         onStartTournament={startTournament}
         onEndTournament={endTournament}
       />
+
+      {state.pointDecision !== null && !rolling && (
+        <div className="fixed inset-0 z-[60] grid place-items-center bg-black/80 px-6 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="point-bet-title">
+          <div className="w-full max-w-xs rounded-3xl border border-gold-400/40 bg-felt-950 p-5 text-center shadow-2xl">
+            <h3 id="point-bet-title" className="gold-text font-display text-lg font-bold">Point is {state.pointDecision}</h3>
+            <p className="mt-2 text-sm text-purple-100">Your {fmt(state.bets.place[state.pointDecision])} place bet is on the point. Move it to another number or pocket it?</p>
+            <div className="mt-4 grid grid-cols-5 gap-2">
+              {POINT_NUMBERS.filter((n) => n !== state.pointDecision).map((n) => (
+                <button key={n} type="button" onClick={() => dispatch({ type: "POINT_BET_DECISION", to: n })} className="rounded-xl border border-gold-400/40 bg-gold-400/10 py-3 font-num text-xl text-gold-300" aria-label={`Move bet to ${n}`}>{n}</button>
+              ))}
+            </div>
+            <button type="button" onClick={() => dispatch({ type: "POINT_BET_DECISION", to: "pocket" })} className="btn-press mt-3 w-full rounded-xl py-3 font-bold text-purple-950">Pocket bet</button>
+            <button type="button" onClick={() => dispatch({ type: "POINT_BET_DECISION", to: "keep" })} className="mt-2 w-full rounded-xl border border-white/20 py-2 text-sm text-white/80">Keep bet on {state.pointDecision}</button>
+          </div>
+        </div>
+      )}
 
       {/* ------------------------------ busted out of the tournament ------------------------------ */}
       {busted && (
