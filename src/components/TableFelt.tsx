@@ -160,11 +160,11 @@ export function TableFelt({
               onTap={() => onSpot(`place-${n}`)}
               flash={flash(`place-${n}`)}
               className={cn(
-                "flex h-[92px] w-full flex-col items-center justify-between rounded-lg pb-1.5 pt-1",
+                "flex h-[92px] w-full flex-col items-center justify-between rounded-lg pb-1.5 pt-1 md:h-[112px] md:py-2",
                 point === n && "border-gold-400/60 bg-gold-400/[0.06]"
               )}
             >
-              <span className="font-num text-[30px] leading-8 text-white drop-shadow-[0_2px_3px_rgba(0,0,0,0.45)]">
+              <span className="font-num text-[30px] leading-8 text-white md:text-4xl drop-shadow-[0_2px_3px_rgba(0,0,0,0.45)]">
                 {n}
               </span>
               <StackOrGhost amount={bets.place[n]} flash={flash(`place-${n}`)} />
@@ -190,7 +190,7 @@ export function TableFelt({
                 label={`Hard ${n}`}
                 onTap={() => onSpot(`hard-${n}`)}
                 flash={flash(`hard-${n}`)}
-                className="flex h-[76px] flex-col items-center justify-between rounded-lg py-1.5"
+                className="flex h-[76px] flex-col items-center justify-between rounded-lg py-1.5 md:h-[90px]"
               >
                 <div className="flex items-center gap-1">
                   <MiniDie value={n / 2} size={18} />

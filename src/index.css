@@ -236,3 +236,32 @@ body {
 .safe-bottom {
   padding-bottom: max(env(safe-area-inset-bottom), 10px);
 }
+
+/* Desktop players can see and operate every control with a mouse or keyboard. */
+.chip-toolbar {
+  scrollbar-width: thin;
+  scrollbar-color: #a97a22 transparent;
+}
+.chip-toolbar::-webkit-scrollbar {
+  height: 6px;
+}
+.chip-toolbar::-webkit-scrollbar-thumb {
+  border-radius: 9999px;
+  background: #a97a22;
+}
+button:focus-visible, input:focus-visible {
+  outline: 2px solid #ffe29a;
+  outline-offset: 2px;
+}
+input, textarea {
+  user-select: text;
+  -webkit-user-select: text;
+}
+@media (hover: hover) and (pointer: fine) {
+  button:not(:disabled) { cursor: pointer; }
+  .spot:hover { background-color: rgba(245, 196, 81, 0.14); border-color: rgba(245, 196, 81, 0.6); }
+}
+/* On shorter desktop windows, a sticky control bar can cover the table. */
+@media (min-width: 768px) and (max-height: 720px) {
+  .roll-controls { position: relative; }
+}
