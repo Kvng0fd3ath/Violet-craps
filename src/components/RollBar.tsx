@@ -396,13 +396,17 @@ export function RollBar({
                 <span className="font-num text-2xl tracking-[0.28em]">{mode === "virtual" ? "ROLL" : "SET ROLL"}</span>
               </>
             )}
-            {mode === "manual" && !rolling && !inRoom && isShooter && (
+          </button>
+
+          {/* CAMERA BUTTON MOVED TO SEPARATE AREA ABOVE ROLL BAR */}
+          {mode === "manual" && !rolling && !inRoom && isShooter && (
+            <div className="absolute top-[-48px] right-2 z-50">
               <button
                 type="button"
                 onClick={onCamera}
                 title="Scan dice with camera"
                 className={cn(
-                  "absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full border transition-all active:scale-90",
+                  "grid h-8 w-8 place-items-center rounded-full border transition-all active:scale-90 shadow-lg",
                   cameraOpen
                     ? "border-gold-400 bg-gold-400/15 text-gold-300"
                     : "border-white/30 bg-white/5 text-white/60"
@@ -410,8 +414,8 @@ export function RollBar({
               >
                 <Camera size={16} strokeWidth={2.5} />
               </button>
-            )}
-          </button>
+            </div>
+          )}
 
           {/* point status */}
           <div className="flex w-[86px] flex-none flex-col items-center justify-center rounded-xl bg-black/30 py-1.5">
