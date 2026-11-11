@@ -19,19 +19,16 @@ export function CameraDice({ onClose, onConfirm, active }: { onClose: () => void
   const trackerRef = useRef(new ScanTracker());
   const [status, setStatus] = useState("Click Enable camera to begin. Your browser may ask for permission.");
   const [ready, setReady] = useState(false);
-  const [collapsed, setCollapsed] = useState(false);
-  const [appearance, setAppearance] = useState<DiceAppearance>("dark");
   const [dice, setDice] = useState<[number | null, number | null]>([null, null]);
   const [opening, setOpening] = useState(false);
   const streamRef = useRef<MediaStream | null>(null);
   const requestRef = useRef(0);
   const hintRef = useRef<number | undefined>(undefined);
-  const [device, setDevice] = useState("");
-  const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
 
   useEffect(() => {
-    if (!collapsed) panelRef.current?.scrollIntoView({ block: "start", behavior: "smooth" });
-  }, [collapsed]);
+    if (!panelRef.current) return;
+    panelRef.current.scrollIntoView({ block: "start", behavior: "smooth" });
+  }, []);
 
   useEffect(() => () => {
     requestRef.current++;
@@ -40,8 +37,8 @@ export function CameraDice({ onClose, onConfirm, active }: { onClose: () => void
     streamRef.current = null;
   }, []);
 
-  // Invoke getUserMedia directly from the user's click (important in some browsers).
-  const openCamera = async (cameraId = device) => {
+  // Invoke getUserMedia directly from the user's click
+  const openCamera = async () => {
     const request = ++requestRef.current;
     window.clearTimeout(hintRef.current);
     streamRef.current?.getTracks().forEach((track) => track.stop());
@@ -68,7 +65,7 @@ export function CameraDice({ onClose, onConfirm, active }: { onClose: () => void
     }, 8000);
     let stream: MediaStream | null = null;
     try {
-      const video = cameraId ? { deviceId: { exact: cameraId } } : { facingMode: { ideal: "environment" } };
+      const video = { facingMode: { ideal: "environment" } };
       stream = await navigator.mediaDevices.getUserMedia({ video, audio: false });
       if (request !== requestRef.current) { stream.getTracks().forEach((track) => track.stop()); return; }
       streamRef.current = stream;
@@ -83,103 +80,41 @@ export function CameraDice({ onClose, onConfirm, active }: { onClose: () => void
       setOpening(false);
       setReady(true);
       setStatus("Camera connected. Throw the dice in view; the reader watches for movement.");
-      if (navigator.mediaDevices.enumerateDevices) {
-        const all = await navigator.mediaDevices.enumerateDevices().catch(() => []);
-        if (request === requestRef.current) setDevices(all.filter((item) => item.kind === "videoinput"));
-      }
-    } catch (error) {
-      stream?.getTracks().forEach((track) => track.stop());
-      if (request === requestRef.current) {
-        streamRef.current = null;
-        window.clearTimeout(hintRef.current);
-        setOpening(false);
-        setStatus(cameraError(error));
-      }
-    }
-  };
+      
+      // AUTO-DETECTION LOGIC: Start scanning immediately
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d", { willReadFrequently: true });
+      if (ctx) {
+        const timer = window.setInterval(() => {
+          const video = videoRef.current;
+          if (!video?.videoWidth || !video.videoHeight) return;
+          canvas.width = Math.min(480, video.videoWidth);
+          canvas.height = Math.max(1, Math.round(canvas.width * video.videoHeight / video.videoWidth));
+          try {
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const frame = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const result = trackerRef.current.next(frame, () => detectDice(frame, "dark")); // Default to dark dice
+            if (result) {
+              // AUTO-CONFIRM: Best guess (don't wait for manual confirmation)
+              setStatus(`Dice ${result[0]} + ${result[1]} detected! Recording automatically…`);
+              onConfirm(result);
+              window.clearInterval(timer);
+              setTimeout(() => {
+                setDice([null, null]);
+                setStatus("Ready for next roll. Throw the dice in view.");
+                trackerRef.current.reset();
+              }, 3000); // Reset after 3 seconds
+            }
+          } catch {\n            window.clearInterval(timer);\n            setStatus(\"Couldn't read camera frames. Enter both dice below or retry.\");\n          }\n        }, 300);\n        return () => window.clearInterval(timer);\n      } catch (error) {\n        stream?.getTracks().forEach((track) => track.stop());
+        if (request === requestRef.current) {
+          streamRef.current = null;
+          window.clearTimeout(hintRef.current);
+          setOpening(false);
+          setStatus(cameraError(error));
+        }
+      }\n    } catch (error) {\n      stream?.getTracks().forEach((track) => track.stop());
+      if (request === requestRef.current) {\n        streamRef.current = null;\n        window.clearTimeout(hintRef.current);\n        setOpening(false);\n        setStatus(cameraError(error));\n      }\n    }\n  };\
 
-  // Discard stale readings when the shooter or table state changes.
-  useEffect(() => {
-    trackerRef.current.reset();
-    setDice([null, null]);
-  }, [active, device, appearance]);
+  // Discard stale readings when the shooter or table state changes.\n  useEffect(() => {\n    trackerRef.current.reset();\n    setDice([null, null]);\n  }, [active]);
 
-  useEffect(() => {
-    if (!ready || !active || dice[0] !== null || dice[1] !== null) return;
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d", { willReadFrequently: true });
-    if (!ctx) { setStatus("Scanning is unavailable. Enter both dice below."); return; }
-    const timer = window.setInterval(() => {
-      const video = videoRef.current;
-      if (!video?.videoWidth || !video.videoHeight) return;
-      canvas.width = Math.min(480, video.videoWidth);
-      canvas.height = Math.max(1, Math.round(canvas.width * video.videoHeight / video.videoWidth));
-      try {
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        const frame = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const result = trackerRef.current.next(frame, () => detectDice(frame, appearance));
-        if (result) { setDice(result); setStatus("Dice found. Check both values, then confirm."); }
-      } catch {
-        window.clearInterval(timer);
-        setStatus("Couldn't read camera frames. Enter both dice below or retry.");
-      }
-    }, 300);
-    return () => window.clearInterval(timer);
-  }, [ready, active, dice, appearance]);
-
-  const resetScan = () => { trackerRef.current.reset(); setDice([null, null]); setStatus("Watching for dice movement. Throw the dice in view."); };
-  return (
-    <section ref={panelRef} aria-labelledby="camera-title" className={collapsed ? "fixed right-3 top-20 z-[45] w-[min(18rem,calc(100vw-1.5rem))] rounded-2xl border border-gold-400/40 bg-felt-950 p-2.5 shadow-xl" : "mx-2 mt-3 scroll-mt-24 rounded-2xl border border-gold-400/40 bg-felt-950 p-4 shadow-xl"}>
-      {collapsed ? (
-        <div className="flex items-center gap-2">
-          <Camera size={16} className="flex-none text-gold-300" />
-          <span id="camera-title" className="min-w-0 flex-1 text-xs font-bold text-gold-200" role="status">
-            {dice[0] !== null && dice[1] !== null ? `Dice ${dice[0]} + ${dice[1]} — review` : !active ? "Camera paused" : ready ? "Camera watching" : "Camera not ready"}
-          </span>
-          <button type="button" onClick={() => setCollapsed(false)} aria-label="Show camera panel" className="flex-none rounded-lg border border-white/30 px-2 py-1.5 text-xs font-bold text-white">Show</button>
-        </div>
-      ) : (
-        <>
-          <div className="flex items-center justify-between gap-2">
-            <h2 id="camera-title" className="font-display text-base font-bold text-gold-300">Live dice camera</h2>
-            <button type="button" onClick={onClose} aria-label="Stop camera" className="rounded-full bg-white/10 p-2"><X size={20} /></button>
-          </div>
-          <p className="mt-2 text-xs leading-5 text-purple-100/80">Aim straight down, close enough to see the dots clearly. Keep both dice separate and use good, even lighting.</p>
-          <label className="mt-3 block text-xs font-bold text-purple-100">Dice color
-            <select value={appearance} onChange={(event) => setAppearance(event.target.value as DiceAppearance)} className="ml-2 rounded-lg border border-white/25 bg-felt-800 px-3 py-2 text-sm text-white">
-              <option value="dark">Dark dice, light dots</option>
-              <option value="light">Light dice, dark dots</option>
-            </select>
-          </label>
-          <p className="mt-2 text-xs text-gold-200">{appearance === "dark" ? "Use a plain light-colored surface, like white paper, so dark dice stand out." : "Use a plain dark surface so light dice stand out."}</p>
-          <button type="button" onClick={() => setCollapsed(true)} className="mt-3 rounded-lg border border-white/30 px-3 py-2 text-xs font-bold text-white">Hide camera panel</button>
-        </>
-      )}
-      {/* Keep the video mounted and playing even while the panel is collapsed. */}
-      <video ref={videoRef} muted playsInline autoPlay aria-label="Live camera preview" aria-hidden={collapsed} className={collapsed ? "pointer-events-none absolute h-px w-px opacity-0" : "mt-2 aspect-video w-full max-w-[280px] rounded-xl bg-black object-contain"} />
-      {!collapsed && (
-        <>
-          {devices.length > 1 && <label className="mt-2 block text-xs text-purple-100">Camera <select value={device} onChange={(e) => { setDevice(e.target.value); void openCamera(e.target.value); }} className="ml-2 rounded-lg bg-felt-800 p-2 text-white"><option value="">Default camera</option>{devices.map((item, i) => <option key={item.deviceId} value={item.deviceId}>{item.label || `Camera ${i + 1}`}</option>)}</select></label>}
-          <p className="mt-2 rounded-lg bg-black/50 px-3 py-2 text-sm font-semibold text-gold-200" role="status">{status}</p>
-          {!active && <p className="mt-1 text-xs text-purple-200/80">Scanning is paused while the table is busy or another shooter has the dice.</p>}
-          <div className="mt-2 flex flex-wrap gap-2">
-            {!ready && <button type="button" onClick={() => void openCamera()} className="rounded-lg border border-gold-400/60 bg-gold-400/15 px-3 py-2 text-sm font-bold text-gold-200">{opening ? "Try camera again" : "Enable camera"}</button>}
-            <a href={window.location.href} target="_blank" rel="noopener noreferrer" className="rounded-lg border border-white/30 px-3 py-2 text-sm text-white">Open game in new tab</a>
-          </div>
-          <div className="mt-3 grid grid-cols-2 gap-3">
-            {([0, 1] as const).map((i) => <label key={i} className="text-xs font-bold text-purple-100">Die {i === 0 ? "A" : "B"}
-              <select value={dice[i] ?? ""} disabled={!active} onChange={(e) => setDice((prev) => { const next: [number | null, number | null] = [...prev]; next[i] = e.target.value ? Number(e.target.value) : null; return next; })} className="mt-1 w-full rounded-xl border border-white/20 bg-felt-800 px-3 py-3 text-base text-white">
-                <option value="">Select value</option>{[1, 2, 3, 4, 5, 6].map((n) => <option key={n} value={n}>{n}</option>)}
-              </select>
-            </label>)}
-          </div>
-          <p className="mt-3 text-xs text-purple-200/70">The reader can be wrong. Check both values before confirming. Live video stays on your device and is not recorded.</p>
-          <div className="mt-3 flex gap-2">
-            <button type="button" disabled={!active} onClick={resetScan} className="flex items-center justify-center gap-1 rounded-xl border border-white/25 px-3 py-3 text-xs text-white disabled:opacity-40"><Camera size={16} /> Retry scan</button>
-            <button type="button" disabled={!active || dice[0] === null || dice[1] === null} onClick={() => { if (dice[0] !== null && dice[1] !== null) { onConfirm([dice[0], dice[1]]); resetScan(); } }} className="btn-press flex-1 rounded-xl py-3 text-sm font-bold text-purple-950 disabled:opacity-40">Confirm and record roll</button>
-          </div>
-        </>
-      )}
-    </section>
-  );
-}
+  return (\n    <section ref={panelRef} aria-labelledby=\"camera-title\" className=\"mx-2 mt-3 scroll-mt-24 rounded-2xl border border-gold-400/40 bg-felt-950 p-3 shadow-xl\">\n      <div className=\"flex items-center justify-between gap-2\">\n        <h2 id=\"camera-title\" className=\"font-display text-base font-bold text-gold-300\">Live dice camera</h2>\n        <button type=\"button\" onClick={onClose} aria-label=\"Stop camera\" className=\"rounded-full bg-white/10 p-2\"><X size={20} /></button>\n      </div>\n      <video ref={videoRef} muted playsInline autoPlay aria-label=\"Live camera preview\" className=\"mt-2 aspect-video w-full max-w-[280px] rounded-xl bg-black object-contain\" />\n      <div className=\"mt-2 rounded-lg bg-black/50 px-3 py-2 text-sm font-semibold text-gold-200\" role=\"status\">\n        {status}\n        {dice[0] !== null && dice[1] !== null && <span className=\"ml-2 text-gold-300\">Dice {dice[0]} + {dice[1]} detected!</span>}\n      </div>\n    </section>\n  );\n}
