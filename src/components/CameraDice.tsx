@@ -105,16 +105,41 @@ export function CameraDice({ onClose, onConfirm, active }: { onClose: () => void
                 trackerRef.current.reset();
               }, 3000); // Reset after 3 seconds
             }
-          } catch {\n            window.clearInterval(timer);\n            setStatus(\"Couldn't read camera frames. Enter both dice below or retry.\");\n          }\n        }, 300);\n        return () => window.clearInterval(timer);\n      } catch (error) {\n        stream?.getTracks().forEach((track) => track.stop());
-        if (request === requestRef.current) {
-          streamRef.current = null;
-          window.clearTimeout(hintRef.current);
-          setOpening(false);
-          setStatus(cameraError(error));
-        }
-      }\n    } catch (error) {\n      stream?.getTracks().forEach((track) => track.stop());
-      if (request === requestRef.current) {\n        streamRef.current = null;\n        window.clearTimeout(hintRef.current);\n        setOpening(false);\n        setStatus(cameraError(error));\n      }\n    }\n  };\
+          } catch (e) {
+            window.clearInterval(timer);
+            setStatus("Couldn't read camera frames. Enter both dice below or retry.");
+          }
+        }, 300);
+        return () => window.clearInterval(timer);
+      }
+    } catch (error) {
+      stream?.getTracks().forEach((track) => track.stop());
+      if (request === requestRef.current) {
+        streamRef.current = null;
+        window.clearTimeout(hintRef.current);
+        setOpening(false);
+        setStatus(cameraError(error));
+      }
+    }
+  };
 
-  // Discard stale readings when the shooter or table state changes.\n  useEffect(() => {\n    trackerRef.current.reset();\n    setDice([null, null]);\n  }, [active]);
+  // Discard stale readings when the shooter or table state changes.
+  useEffect(() => {
+    trackerRef.current.reset();
+    setDice([null, null]);
+  }, [active]);
 
-  return (\n    <section ref={panelRef} aria-labelledby=\"camera-title\" className=\"mx-2 mt-3 scroll-mt-24 rounded-2xl border border-gold-400/40 bg-felt-950 p-3 shadow-xl\">\n      <div className=\"flex items-center justify-between gap-2\">\n        <h2 id=\"camera-title\" className=\"font-display text-base font-bold text-gold-300\">Live dice camera</h2>\n        <button type=\"button\" onClick={onClose} aria-label=\"Stop camera\" className=\"rounded-full bg-white/10 p-2\"><X size={20} /></button>\n      </div>\n      <video ref={videoRef} muted playsInline autoPlay aria-label=\"Live camera preview\" className=\"mt-2 aspect-video w-full max-w-[280px] rounded-xl bg-black object-contain\" />\n      <div className=\"mt-2 rounded-lg bg-black/50 px-3 py-2 text-sm font-semibold text-gold-200\" role=\"status\">\n        {status}\n        {dice[0] !== null && dice[1] !== null && <span className=\"ml-2 text-gold-300\">Dice {dice[0]} + {dice[1]} detected!</span>}\n      </div>\n    </section>\n  );\n}
+  return (
+    <section ref={panelRef} aria-labelledby="camera-title" className="mx-2 mt-3 scroll-mt-24 rounded-2xl border border-gold-400/40 bg-felt-950 p-3 shadow-xl">
+      <div className="flex items-center justify-between gap-2">
+        <h2 id="camera-title" className="font-display text-base font-bold text-gold-300">Live dice camera</h2>
+        <button type="button" onClick={onClose} aria-label="Stop camera" className="rounded-full bg-white/10 p-2"><X size={20} /></button>
+      </div>
+      <video ref={videoRef} muted playsInline autoPlay aria-label="Live camera preview" className="mt-2 aspect-video w-full max-w-[280px] rounded-xl bg-black object-contain" />
+      <div className="mt-2 rounded-lg bg-black/50 px-3 py-2 text-sm font-semibold text-gold-200" role="status">
+        {status}
+        {dice[0] !== null && dice[1] !== null && <span className="ml-2 text-gold-300">Dice {dice[0]} + {dice[1]} detected!</span>}
+      </div>
+    </section>
+  );
+}
