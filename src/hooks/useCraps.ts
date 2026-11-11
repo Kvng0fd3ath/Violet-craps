@@ -161,7 +161,7 @@ export const initialState = (): GameState => ({
   detail: "Drop chips on the felt, then roll the bones.",
   tone: "neutral",
   winKeys: [],
-  mode: "virtual",
+  mode: "manual",
   chip: 25,
   rakeMode: false,
   placeOnComeOut: false,
