@@ -9,6 +9,7 @@ import {
   ChevronsUp,
   Wallet,
   Split,
+  Camera,
 } from "lucide-react";
 import { cn } from "../utils/cn";
 import { PendingWin, PointNumber, POINT_NUMBERS, placeOddsLabel, fmt } from "../game/craps";
@@ -57,20 +58,11 @@ function KeySlot({ value, label, active }: { value: number; label: string; activ
     <div
       className={cn(
         "flex flex-col items-center rounded-lg border px-1.5 py-1 transition-all",
-        active
-          ? "border-gold-400 bg-gold-400/10 shadow-[0_0_12px_rgba(245,196,81,0.3)]"
-          : "border-white/10 bg-white/[0.03]"
+        active ? "border-gold-400 bg-gold-400/15" : "border-white/10 bg-white/[0.07]"
       )}
     >
-      <MiniDie value={value} size={30} />
-      <span
-        className={cn(
-          "mt-0.5 text-[7px] font-black uppercase tracking-[0.25em]",
-          active ? "text-gold-300" : "text-purple-200/50"
-        )}
-      >
-        {label}
-      </span>
+      <span className="font-num text-lg leading-4">{value}</span>
+      <span className="text-[8.5px] font-bold uppercase tracking-wide text-white/60">{label}</span>
     </div>
   );
 }
@@ -101,6 +93,8 @@ export function RollBar({
   inRoom = false,
   isShooter = true,
   shooterName,
+  onCamera,
+  cameraOpen,
 }: {
   mode: Mode;
   modeLocked: boolean;
@@ -118,7 +112,9 @@ export function RollBar({
   onPinch: (to: PointNumber) => void;
   onPocket: () => void;
   rolling: boolean;
-  onRoll: () => void;
+  onRoll: (cameraDice?: [number, number]) => void;
+  onCamera: () => void;
+  cameraOpen: boolean;
   lastRoll: [number, number] | null;
   point: PointNumber | null;
   manual: [number, number];
@@ -202,18 +198,17 @@ export function RollBar({
                       </motion.div>
                     )}
                   </AnimatePresence>
-
-                  <div className="flex gap-2">
-                    <DecisionButton icon={ChevronsUp} title="PRESS IT" caption="all winnings ride" onClick={onPress} tone="gold" />
-                    <DecisionButton
-                      icon={Split}
-                      title="PINCH"
-                      caption={pinchOpen ? "pick a number ↑" : "press half to any number"}
-                      onClick={() => setPinchOpen((o) => !o)}
-                      tone="ghost"
-                    />
-                    <DecisionButton icon={Wallet} title="POCKET" caption="rack it all, same bet" onClick={onPocket} tone="green" />
-                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <DecisionButton icon={ChevronsUp} title="PRESS IT" caption="all winnings ride" onClick={onPress} tone="gold" />
+                  <DecisionButton
+                    icon={Split}
+                    title="PINCH"
+                    caption={pinchOpen ? "pick a number ↑" : "press half to any number"}
+                    onClick={() => setPinchOpen((o) => !o)}
+                    tone="ghost"
+                  />
+                  <DecisionButton icon={Wallet} title="POCKET" caption="rack it all, same bet" onClick={onPocket} tone="green" />
                 </div>
               </div>
             </motion.div>
@@ -371,7 +366,7 @@ export function RollBar({
           {/* the roll button */}
           <button
             type="button"
-            onClick={onRoll}
+            onClick={() => onRoll()}
             disabled={rolling || (inRoom && !isShooter)}
             className={cn(
               "relative flex flex-1 items-center justify-center gap-2 overflow-hidden rounded-2xl py-4 transition-transform",
@@ -400,6 +395,21 @@ export function RollBar({
                 {mode === "virtual" ? <Dices size={22} strokeWidth={2.5} /> : <Hand size={22} strokeWidth={2.5} />}
                 <span className="font-num text-2xl tracking-[0.28em]">{mode === "virtual" ? "ROLL" : "SET ROLL"}</span>
               </>
+            )}
+            {mode === "manual" && !rolling && !inRoom && isShooter && (
+              <button
+                type="button"
+                onClick={onCamera}
+                title="Scan dice with camera"
+                className={cn(
+                  "absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full border transition-all active:scale-90",
+                  cameraOpen
+                    ? "border-gold-400 bg-gold-400/15 text-gold-300"
+                    : "border-white/30 bg-white/5 text-white/60"
+                )}
+              >
+                <Camera size={16} strokeWidth={2.5} />
+              </button>
             )}
           </button>
 
