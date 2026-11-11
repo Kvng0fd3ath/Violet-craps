@@ -4,6 +4,7 @@ import { cn } from "./utils/cn";
 import { useCraps, BetSpot, type Mode } from "./hooks/useCraps";
 import { fmt, POINT_NUMBERS, type PointNumber } from "./game/craps";
 import { initAudio, playRattle, playOutcome, playChip, vibrate, setAudioMuted } from "./game/audio";
+import { CameraDice } from "./components/CameraDice";
 import { TableFelt } from "./components/TableFelt";
 import { RollBar } from "./components/RollBar";
 import { HelpSheet } from "./components/HelpSheet";
@@ -24,6 +25,7 @@ export default function App() {
   const [manualSlot, setManualSlot] = useState<0 | 1>(0);
   const [helpOpen, setHelpOpen] = useState(false);
   const [lobbyOpen, setLobbyOpen] = useState(false);
+  const [cameraOpen, setCameraOpen] = useState(false);
   const [shooterIdx, setShooterIdx] = useState(0);
   const rollTimer = useRef<number | undefined>(undefined);
   const soundRef = useRef(state.soundOn);
@@ -93,12 +95,16 @@ export default function App() {
 
   /* safe to auto-refresh only when there's nothing at stake */
   const tableIdle =
-    !rolling && onLayout === 0 && pendingTotal === 0 && state.point === null && !room.inRoom;
+    !rolling && !cameraOpen && onLayout === 0 && pendingTotal === 0 && state.point === null && !room.inRoom;
   const { updateReady, applyUpdate, checkNow, checking, install } = useAppUpdate(tableIdle);
   const shooter = room.roster.length > 0 ? room.roster[shooterIdx % room.roster.length] : null;
   const isShooter = !room.inRoom || shooter?.id === room.selfId;
 
   /* ------------------------------ actions ------------------------------ */
+
+  useEffect(() => {
+    if (state.mode !== "manual") setCameraOpen(false);
+  }, [state.mode]);
 
   const handleSpot = (spot: BetSpot) => {
     if (rolling) return;
@@ -108,11 +114,11 @@ export default function App() {
     dispatch({ type: "BET", spot });
   };
 
-  const handleRoll = () => {
+  const handleRoll = (cameraDice?: [number, number]) => {
     if (rolling || !isShooter || state.pointDecision !== null) return;
     initAudio();
-    const d1 = state.mode === "virtual" ? 1 + Math.floor(Math.random() * 6) : manual[0];
-    const d2 = state.mode === "virtual" ? 1 + Math.floor(Math.random() * 6) : manual[1];
+    const d1 = cameraDice?.[0] ?? (state.mode === "virtual" ? 1 + Math.floor(Math.random() * 6) : manual[0]);
+    const d2 = cameraDice?.[1] ?? (state.mode === "virtual" ? 1 + Math.floor(Math.random() * 6) : manual[1]);
     if (state.soundOn) playRattle();
     vibrate([0, 25, 70, 25]);
     setRolling(true);
@@ -297,6 +303,10 @@ export default function App() {
           onOpenLobby={() => setLobbyOpen(true)}
         />
 
+        {cameraOpen && state.mode === "manual" && (
+          <CameraDice onClose={() => setCameraOpen(false)} onConfirm={(dice) => handleRoll(dice)} active={isShooter && !rolling && state.pointDecision === null} />
+        )}
+
         {/* ------------------------------ the felt ------------------------------ */}
         <main className="flex-1">
           <TableFelt
@@ -340,7 +350,9 @@ export default function App() {
             dispatch({ type: "POCKET" });
           }}
           rolling={rolling}
-          onRoll={handleRoll}
+          onRoll={(cameraDice) => handleRoll(cameraDice)}
+          onCamera={() => setCameraOpen((open) => !open)}
+          cameraOpen={cameraOpen}
           lastRoll={state.lastRoll}
           point={state.point}
           manual={manual}
