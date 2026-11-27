@@ -223,8 +223,9 @@ export function resolveRoll(
     if (t === 7 || t === 11) {
       if (prev.passLine > 0) {
         credit += prev.passLine;
+        bets.passLine = prev.passLine;
         winKeys.push("pass");
-        details.push(`Pass line pays $${prev.passLine} even`);
+        details.push(`Pass line pays ${fmt(prev.passLine)} — bet stays up`);
       }
       if (prev.dontPass > 0) {
         bets.dontPass = 0;
@@ -255,8 +256,9 @@ export function resolveRoll(
       newPoint = null;
       if (prev.passLine > 0) {
         credit += prev.passLine;
+        bets.passLine = prev.passLine;
         winKeys.push("pass");
-        details.push(`Pass line pays $${prev.passLine} even`);
+        details.push(`Pass line pays ${fmt(prev.passLine)} — bet stays up`);
       }
       if (prev.passOdds > 0) {
         const pay = oddsPayout(point, prev.passOdds);
