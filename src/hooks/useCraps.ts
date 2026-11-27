@@ -317,6 +317,16 @@ export function reducer(state: GameState, action: Action): GameState {
               ? "Everything comes down. New shooter."
               : "Nothing doing."
             : "";
+      let nextToasts = state.toasts;
+      if (autoPocket > 0) {
+        nextToasts = pushToast(nextToasts, `Same bet — ${fmt(autoPocket)} pocketed for you`);
+      }
+      if (res.winKeys.includes("pass") && state.bets.passLine > 0) {
+        nextToasts = pushToast(
+          nextToasts,
+          `Pass line +${fmt(state.bets.passLine)} to rack · ${fmt(res.bets.passLine)} bet stays up`
+        );
+      }
       return {
         ...state,
         bets: res.bets,
@@ -331,12 +341,10 @@ export function reducer(state: GameState, action: Action): GameState {
         detail: who && body ? `${who}  ·  ${body}` : who || body,
         tone: res.tone,
         winKeys: res.winKeys,
+        rakeMode: false,
         history: [],
         flashBreak: res.sevenOut,
-        toasts:
-          autoPocket > 0
-            ? pushToast(state.toasts, `Same bet — ${fmt(autoPocket)} pocketed for you`)
-            : state.toasts,
+        toasts: nextToasts,
       };
     }
 

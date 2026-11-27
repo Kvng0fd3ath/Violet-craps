@@ -168,13 +168,13 @@ export default function App() {
 
   /* ------------------------------ toast expiry ------------------------------ */
   useEffect(() => {
-    if (state.toasts.length === 0) return;
+    if (rolling || state.toasts.length === 0) return;
     const t = window.setTimeout(
       () => dispatch({ type: "DISMISS_TOAST", id: state.toasts[0].id }),
       2600
     );
     return () => window.clearTimeout(t);
-  }, [state.toasts, dispatch]);
+  }, [rolling, state.toasts, dispatch]);
 
   useEffect(() => () => {
     window.clearTimeout(rollTimer.current);
@@ -314,6 +314,7 @@ export default function App() {
             point={state.point}
             roll={state.lastRoll}
             rollId={state.rollId}
+            rolling={rolling}
             winKeys={state.winKeys}
             headline={state.headline}
             detail={state.detail}

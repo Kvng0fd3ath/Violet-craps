@@ -41,14 +41,19 @@ function nextAngle(prev: number, target: number): number {
   return prev + 720 + extra + d;
 }
 
-export function Die3D({ value, size = 68 }: { value: number; size?: number }) {
+export function Die3D({ value, rollId = 0, size = 68 }: { value: number; rollId?: number; size?: number }) {
   const half = size / 2;
   const [rot, setRot] = useState<[number, number]>(() => SHOW[value]);
+  const mounted = useRef(false);
 
   useEffect(() => {
+    if (!mounted.current) {
+      mounted.current = true;
+      return;
+    }
     const [tx, ty] = SHOW[value];
     setRot(([px, py]) => [nextAngle(px, tx), nextAngle(py, ty)]);
-  }, [value]);
+  }, [value, rollId]);
 
   return (
     <div className="die-scene" style={{ width: size, height: size }}>
@@ -101,14 +106,14 @@ export function DicePair({ roll, rollId, size = 68 }: { roll: [number, number] |
   return (
     <div className="relative flex items-end gap-7" style={{ height: size + 26 }}>
       <motion.div animate={c1} initial={false} className="relative">
-        <Die3D value={d1} size={size} />
+        <Die3D value={d1} rollId={rollId} size={size} />
         <div
           className="absolute -bottom-3 left-1/2 h-3 -translate-x-1/2 rounded-full bg-black/55 blur-[6px]"
           style={{ width: size * 0.85 }}
         />
       </motion.div>
       <motion.div animate={c2} initial={false} className="relative mb-3">
-        <Die3D value={d2} size={size} />
+        <Die3D value={d2} rollId={rollId} size={size} />
         <div
           className="absolute -bottom-3 left-1/2 h-3 -translate-x-1/2 rounded-full bg-black/55 blur-[6px]"
           style={{ width: size * 0.85 }}

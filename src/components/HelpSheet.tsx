@@ -239,7 +239,7 @@ export function HelpSheet({
                 ))}
               </div>
                 <p className="mt-3 text-center text-[10px] text-purple-200/50">
-                  Pass line is a contract bet: once a point is set it stays until it wins or sevens out.
+                  Pass line is a contract bet while a point is on; when it wins, winnings go to your rack and your original bet stays up.
                 </p>
                 <InstallCard
                   install={install}

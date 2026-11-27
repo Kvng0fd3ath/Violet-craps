@@ -76,6 +76,7 @@ export function TableFelt({
   point,
   roll,
   rollId,
+  rolling = false,
   winKeys,
   headline,
   detail,
@@ -87,6 +88,7 @@ export function TableFelt({
   point: PointNumber | null;
   roll: [number, number] | null;
   rollId: number;
+  rolling?: boolean;
   winKeys: string[];
   headline: string;
   detail: string;
@@ -94,7 +96,7 @@ export function TableFelt({
   placeOnComeOut: boolean;
   onSpot: (spot: BetSpot) => void;
 }) {
-  const flash = (k: string) => winKeys.includes(k);
+  const flash = (k: string) => !rolling && winKeys.includes(k);
   const placeWorking = point !== null || placeOnComeOut;
 
   return (
@@ -317,8 +319,19 @@ export function TableFelt({
           <div className="pointer-events-none absolute -top-px left-6 right-6 h-1 rounded-b-full bg-gradient-to-r from-transparent via-gold-400/70 to-transparent" />
           <div className="text-left">
             <div className="font-num text-xl leading-5 tracking-[0.18em] gold-text">PASS LINE</div>
-            <div className="text-[9px] font-semibold text-purple-200/60">
-              even money{point !== null ? " · contract — locked" : ""}
+            <div
+              className={cn(
+                "text-[9px] font-semibold",
+                point === null && flash("pass") && bets.passLine > 0
+                  ? "text-emerald-300"
+                  : "text-purple-200/60"
+              )}
+            >
+              {point !== null
+                ? "even money · contract — locked"
+                : flash("pass") && bets.passLine > 0
+                  ? `paid +${fmt(bets.passLine)} to rack · bet stays up`
+                  : "even money · bet stays on win"}
             </div>
           </div>
           <div className="pr-1">
